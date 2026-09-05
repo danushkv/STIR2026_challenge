@@ -1,0 +1,30 @@
+# Weights — submission/weights/student.pth is 97 MB. Provenance is in
+# submission/CHECKPOINT.txt; add it back with git-lfs if you want it tracked.
+*.pth
+*.pt
+*.ckpt
+
+# Data and run artifacts
+*.npz
+*.mp4
+*.tar
+scripts/logs/*.log
+
+# GIFs in assets/ ARE tracked -- they are the README figures.
+!assets/*.gif
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# wandb
+wandb/
+
+# LaTeX build products
+report/*.aux
+report/*.log
+report/*.out
+report/main.pdf
+report/*.synctex.gz

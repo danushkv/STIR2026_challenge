@@ -1,0 +1,51 @@
+weights/student.pth
+  = /mnt/cluster/datasets/STIRprocessed/model_runs/fast_run_with2024_agg/student_e44.pth
+  ("agg_e44" in the sweep;  size 101,693,690 bytes)
+
+Chosen from 13 checkpoints evaluated under the LiteTracker streaming runtime on
+the 32 held-out STIRTest_2025 clips (paired clip-level bootstrap, 10k resamples):
+
+  3D acc_avg  0.7383  -- 1st of 23 runs
+  2D delta_avg 0.8103 -- 3rd of 23, statistically tied with the leader (P=0.22)
+  best 2D median (4.55px at iters=1), no divergence on any clip
+
+It is the only checkpoint that tops BOTH tables. Caveat: every top-of-table
+difference is a statistical tie -- 2D separates nothing at all, 3D separates
+only the bottom five. This is a nominal first, not a demonstrated winner.
+
+Alternative worth one line: agg_e40 @ iters=2 was the nominal 2D leader
+(0.8137) by a margin well inside noise. To switch, copy student_e40.pth over
+weights/student.pth and set STUDENT_LT_ITERS=2 in docker/Dockerfile.mono.
+
+--- 3D: what to actually expect -------------------------------------------
+The 0.7383 above used getsegsstereo for the right-view start points, which is
+annotation data the 2026 harness does not provide. Re-run with the shipped
+match_right():
+
+  getsegsstereo (not available at submission)   3D acc_avg 0.7383
+  match_right(), no consistency check           3D acc_avg 0.6863
+  match_right() + consistency check  (SHIPPED)  3D acc_avg 0.7031
+  CONTROL (point never moved)                   3D acc_avg 0.6115
+
+Expect ~0.7031 on the 3D track. The 2D and latency tracks are unaffected --
+they never used getsegsstereo.
+
+The consistency check (repair_disparity, CONSIST_K=8 ABS=8.0 MAD=3.0) is the
+geometric-consistency step from Peng's 2025 write-up: disparity is a difference
+of two independently tracked points, so their errors add and one bad
+triangulation is otherwise emitted as a confident 3D point. Replacing grossly
+inconsistent disparities with the neighbourhood median improves ALL FIVE
+thresholds (tag agg_e44_match_fix4):
+
+        2mm     4mm     8mm    16mm    32mm     avg   mean
+  off  .3304   .5727   .7357   .8590   .9339   .6863  31.09mm
+  on   .3392   .5859   .7533   .8811   .9559   .7031  19.31mm
+
+Paired clip bootstrap: +0.0167, 95% CI [-0.0011, +0.0473], P(better)=0.912 --
+formally a tie, but it is monotone across every threshold, so it is taken as a
+free improvement rather than a demonstrated one.
+
+Still missing vs Peng's description: the 3D EMA motion model that reprojects
+predicted 3D positions into both views to initialise each step. That couples the
+two trackers; ours run independently. Left as future work -- it is a change to
+the tracking loop, not a post-hoc filter.

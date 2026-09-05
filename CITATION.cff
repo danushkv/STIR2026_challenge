@@ -1,0 +1,53 @@
+cff-version: 1.2.0
+title: >-
+  Verifier-Guided Multi-Teacher Distillation for Streaming Tissue Tracking
+message: >-
+  If you use this code or the released checkpoint, please cite this repository
+  and the STIR dataset. A GitHub star is also very welcome.
+type: software
+authors:
+  - given-names: Danush Kumar
+    family-names: Venkatesh
+    affiliation: National Center for Tumor Diseases (NCT) Dresden
+  - given-names: Peng
+    family-names: Liu
+    affiliation: National Center for Tumor Diseases (NCT) Dresden
+  - given-names: Stefanie
+    family-names: Speidel
+    affiliation: National Center for Tumor Diseases (NCT) Dresden
+repository-code: 'https://github.com/danushkv/STIR2026_challenge'
+abstract: >-
+  A single LiteTracker student distilled from an ensemble of six point trackers.
+  The IR-tattoo endpoint annotation in STIR, together with cycle consistency and
+  cross-teacher agreement, verifies candidate trajectories and fuses them into
+  weighted pseudo-labels. Team NCT_TSO, STIR Challenge 2026.
+keywords:
+  - surgical vision
+  - point tracking
+  - tissue tracking
+  - knowledge distillation
+  - pseudo-labeling
+  - STIR
+license: MIT
+references:
+  - type: article
+    title: >-
+      Surgical Tattoos in Infrared: A Dataset for Quantifying Tissue Tracking
+      and Mapping
+    authors:
+      - given-names: Adam
+        family-names: Schmidt
+      - given-names: Omid
+        family-names: Mohareri
+      - given-names: Simon P.
+        family-names: DiMaio
+      - given-names: Septimiu E.
+        family-names: Salcudean
+    journal: IEEE Transactions on Medical Imaging
+    volume: 43
+    issue: 7
+    start: 2634
+    end: 2645
+    year: 2024
+    month: 7
+    doi: 10.1109/TMI.2024.3372828

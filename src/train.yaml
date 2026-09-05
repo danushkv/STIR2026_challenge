@@ -1,0 +1,48 @@
+# Config for train.py, shared with every evaluator (they reuse
+# model.DEFAULT_CONFIG). Loaded with OmegaConf; every key can be overridden on
+# the command line, in either `--key value` or `key=value` form:
+#
+#   python train.py --config train.yaml \
+#       lr=1e-5 epochs=20 wandb.enabled=true val_patients=[15,16]
+#
+# Required keys are left as ??? (OmegaConf raises if still missing at run time).
+
+# --- Data ---
+pseudo_labels_dir: /mnt/cluster/datasets/STIRprocessed/pseudo_labels/        # run_phase2.py's --out-dir (<pl>/<patient>/<seq>.npz)
+stir_root: /mnt/cluster/datasets/STIRDataset                # STIR dataset root, for real frames + start/end centers
+# Absolute: scripts are launched from several working directories.
+repo_root: /mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/co-tracker    # cloned facebookresearch/co-tracker
+checkpoint: "/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/lite-tracker-master/model/scaled_online.pth"                # e.g. <repo_root>/checkpoints/scaled_online.pth
+skip: 5                       # must match the --skip used to collect the pseudo-labels
+out_dir: /mnt/cluster/datasets/STIRprocessed/model_runs
+model_resolution: [384, 512]  # CoTracker3's trained working resolution (h, w)
+
+# --- Optimization ---
+lr: 2.0e-5
+epochs: 10
+window_len: 16                # must match the checkpoint's window_len (16 for scaled_online)
+train_iters: 4                # refinement iterations per window
+supervision: weighted         # weighted | uniform (fold verifier per-frame weight or not)
+max_train_frames: 64          # per-clip frame cap (bounds GPU memory); Meta uses 64
+max_points: 384               # per-clip query-point cap; Meta uses 384
+seed: 0
+
+# --- Validation (STIR endpoint metrics on held-out patients; NO validation loss) ---
+val_patients: []              # patient folders held out for validation AND excluded from training
+val_every: 1                  # run validation every N epochs (0 disables validation)
+val_max_frames: 250           # per-val-clip frame cap (temporal stride, keeps first+last frame)
+
+# --- Checkpointing ---
+save_freq: 1                  # save a numbered checkpoint every N epochs (student_last.pth always saved)
+
+# --- Logging ---
+wandb:
+  enabled: true
+  project: stir-student
+  entity: null
+  run_name: null
+  mode: online                # online | offline | disabled
+
+# --- train.py only ---
+num_workers: 4                 # DataLoader worker processes for the prefetching pipeline
+

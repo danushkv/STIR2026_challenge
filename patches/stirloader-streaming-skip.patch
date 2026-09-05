@@ -1,0 +1,98 @@
+diff --git a/STIRLoader/STIRLoader.py b/STIRLoader/STIRLoader.py
+index 05adc80..55b7933 100644
+--- a/STIRLoader/STIRLoader.py
++++ b/STIRLoader/STIRLoader.py
+@@ -618,12 +618,20 @@ class STIRStereoClip:
+ 
+     def extractallframes(self):
+         """Extracts whole sequence into
+-        If SKIP is set in os.environ, this skips every SKIP frames
++        If SKIP is set in os.environ, this skips every SKIP frames -- applied
++        while streaming from ffmpeg, so memory scales with the frames kept
++        rather than the full clip length.
+ 
+         usetmpdir:
+             True extracts using tmpdir, and then loads the frames afterwards.
+             False extracts using extractfullvideopipe"""
+ 
++        if "SKIP" in os.environ:
++            SKIP = int(os.environ["SKIP"])
++            print(f"using different skip factor of {SKIP}")
++        else:
++            SKIP = 1
++
+         def getframes(filename):
+             size = (1280, 1024)
+             usetmpdir = False
+@@ -640,22 +648,11 @@ class STIRStereoClip:
+                         vidframes.append(frame)
+                     return vidframes
+             else:
+-                frames = self.extractfullvideopipe(filename, "visible")
++                frames = self.extractfullvideopipe(filename, "visible", skip=SKIP)
+                 return [cv2.resize(x, size) for x in frames]
+ 
+         leftvidframes = getframes(self.leftvidname)
+         rightvidframes = getframes(self.rightvidname)
+-        if "SKIP" in os.environ:
+-            SKIP = int(os.environ["SKIP"])
+-            print(f"using different skip factor of {SKIP}")
+-        else:
+-            SKIP = 1
+-        if len(leftvidframes) % SKIP == 1:
+-            leftvidframes = leftvidframes[::SKIP]
+-            rightvidframes = rightvidframes[::SKIP]
+-        else:
+-            leftvidframes = leftvidframes[::SKIP] + [leftvidframes[-1]]
+-            rightvidframes = rightvidframes[::SKIP] + [rightvidframes[-1]]
+         return leftvidframes, rightvidframes
+ 
+     @staticmethod
+@@ -674,8 +671,12 @@ class STIRStereoClip:
+         process = sp.run(command)
+ 
+     @staticmethod
+-    def extractfullvideopipe(videoname, segname):
+-        """Extracts video to image list in RGB format
++    def extractfullvideopipe(videoname, segname, skip=1):
++        """Extracts video to image list in RGB format, keeping only every
++        `skip`-th frame (plus always the final frame, matching the previous
++        decode-then-slice behavior) as it streams from ffmpeg -- so peak
++        memory scales with the number of frames kept, not the full clip
++        length.
+         Returns:
+             frames: list of frames"""
+         command = [
+@@ -692,23 +693,28 @@ class STIRStereoClip:
+             "-",
+         ]
+         pipe = sp.Popen(command, stdout=sp.PIPE)
+-        cnt = 0
+         W = 1280
+         H = 1024
+         frames = []
++        last_frame = None
++        total = 0
+         while True:
+-            cnt += 1
+             raw_image = pipe.stdout.read(W * H * 3)
+-            image = np.fromstring(raw_image, dtype="uint8")
++            image = np.frombuffer(raw_image, dtype="uint8")
+             if image.shape[0] == 0:
+                 break
+             else:
+                 image = image.reshape((H, W, 3))
+-                frames.append(image)
++                last_frame = image
++                if total % skip == 0:
++                    frames.append(image)
++                total += 1
+             # cv2.imshow('test', image)
+             # cv2.waitKey(1)
+         pipe.stdout.close()
+         pipe.wait()
++        if total % skip != 1 and last_frame is not None:
++            frames.append(last_frame)
+         return frames
+ 
+     @staticmethod
