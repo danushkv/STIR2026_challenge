@@ -1,6 +1,7 @@
 # Data and artifact layout
 
-Everything below lives under `${DATA_ROOT}` = `/mnt/cluster/datasets`.
+Everything below lives under `${DATA_ROOT}`. Set it in `.env`; `./data` is the
+repository-relative fallback.
 
 ## Source datasets
 
@@ -69,7 +70,7 @@ nothing to cross-check them against.
 **The three densification sets are single-teacher throughout — read
 [CAVEATS.md](CAVEATS.md) before interpreting them.**
 
-Intermediate raw-track roots for densification (`collect_extra_points.py`
+Intermediate raw-track roots for densification (`experiments/collect_extra_points.py`
 output, one `cotracker3/` teacher directory each):
 `pseudo_labels_with_extra_beforeprocessing/`,
 `pseudo_labels_with2024_beforeprocess_aroundpoints/`,

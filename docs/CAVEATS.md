@@ -9,7 +9,7 @@ The report describes seeding extra query points "in addition to" the IR tattoo
 points, treated as self-labelling data at lower weight. That is not what the
 label sets on disk contain.
 
-`collect_extra_points.py` samples points that are distinct from the existing
+`experiments/collect_extra_points.py` samples points that are distinct from the existing
 pseudo-label points, and then tracks **only the new points** with one teacher
 (`cotracker3`). Its output goes to a fresh raw-tracks root holding a single
 teacher directory. `run_phase2.py` reading that root sees one covering teacher
@@ -43,7 +43,7 @@ The submitted PDF says "We ran six trackers over the STIROrig dataset". The
 artifacts on disk say otherwise, unambiguously: the released pseudo-label set
 `pseudo_labels_with_2024_agg/` contains patients `02_2024` … `11_2024` alongside
 `0` … `28`, and the run's own `config.yaml` records
-`stir_root: /mnt/cluster/datasets/STIRcombined/`, the symlink farm over both
+`stir_root: <data>/STIRcombined/`, the symlink farm over both
 collections. 626 clips, where STIROrig alone gives 566.
 
 This matters for anyone reproducing: training on STIROrig alone will not

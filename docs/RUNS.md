@@ -59,15 +59,16 @@ densification.
 
 ```bash
 python train.py --config train.yaml \
-  --pseudo-labels-dir /mnt/cluster/datasets/STIRprocessed/pseudo_labels_with_2024_agg/ \
-  --stir-root         /mnt/cluster/datasets/STIRcombined/ \
-  checkpoint=/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/track_on/checkpoint/litetracker_finetuned.pth \
+  --pseudo-labels-dir "$PSEUDO_LABELS_DIR" \
+  --stir-root         "$STIR_TRAIN_ROOT" \
+  checkpoint="$INIT_CKPT" \
   epochs=45 save_freq=2 wandb.run_name=fast_run_with2024_agg
 ```
 
 Wrapped as `scripts/train.sh`. The original used the relative form
 `checkpoint=../track_on/checkpoint/litetracker_finetuned.pth`, which resolved
-from the old working directory; it is absolute here and points at the same file.
+from the old working directory. The public command names that same file through
+the machine-local `INIT_CKPT` variable.
 
 `--key value` and `key=value` are interchangeable —
 `model.normalize_overrides` maps hyphens in *keys* to underscores and

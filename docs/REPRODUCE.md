@@ -7,9 +7,9 @@ the released checkpoint (md5 `4709eaefce5d4d45c7222c8617d0890f`, SHA-256
 Five steps. Steps 1–2 are the expensive part (GPU-days); if the artifacts they
 produce already exist on the cluster you can start at step 3.
 
-Every script reads its paths from `REPO_ROOT`, `THIRDPARTY_ROOT`, `DATA_ROOT`,
-`VENV_ROOT` and defaults them to the cluster locations, so the commands below
-are runnable as written.
+Copy `.env.example` to `.env` and set the local dataset, clone, interpreter,
+and checkpoint paths. Shell drivers load it automatically. No private cluster
+paths are encoded in the public configurations.
 
 ---
 
@@ -99,9 +99,9 @@ the fusion beats its own best teacher:
 ```bash
 cd src
 python evaluate_labels.py \
-  --raw-tracks-root   /mnt/cluster/datasets/STIRprocessed/STIROrig_tracks \
-  --pseudo-labels-dir /mnt/cluster/datasets/STIRprocessed/pseudo_labels_with_2024_agg \
-  --stir-root         /mnt/cluster/datasets/STIRDataset
+  --raw-tracks-root   "$DATA_ROOT/STIRprocessed/STIROrig_tracks" \
+  --pseudo-labels-dir "$PSEUDO_LABELS_DIR" \
+  --stir-root         "$DATA_ROOT/STIRDataset"
 ```
 
 ## 3. Train the student
@@ -177,10 +177,10 @@ Single checkpoint:
 cd src
 python eval_sweep.py --config train.yaml \
   tag=agg_e44 \
-  student_checkpoint=/mnt/cluster/datasets/STIRprocessed/model_runs/fast_run_with2024_agg/student_e44.pth \
-  val_stir_root=/mnt/cluster/datasets/STIRTest_2025 \
+  student_checkpoint="$STUDENT_CHECKPOINT" \
+  val_stir_root="$STIR_TEST_ROOT" \
   iters_list='[1,2,4]' \
-  out_dir=/mnt/cluster/datasets/STIRprocessed/eval_sweep < /dev/null
+  out_dir="$EVAL_ROOT" < /dev/null
 ```
 
 The `< /dev/null` is **not** optional when this runs inside a `while read` loop:
