@@ -44,15 +44,9 @@ directly visible—the signals used by the verifier when producing supervision.
   <img src="assets/teacher_comparison.gif" width="100%" alt="Synchronized trajectories from CoTracker3, AllTracker, LocoTrack, MFT, Track-On2, and Track-On-R."/>
 </p>
 
-The result is a dense trajectory with a confidence weight for every retained
-frame:
 
-<p align="center">
-  <img src="assets/pseudo_labels.gif" width="68%" alt="Verifier-fused pseudo-label trajectories with endpoint annotations."/>
-</p>
-
-Both animations are reproducible. See [assets/README.md](assets/README.md) for
-the rendering commands and size-quality controls.
+The animations are reproducible. See [assets/README.md](assets/README.md) for
+the rendering commands.
 
 ## Results
 
@@ -176,8 +170,6 @@ Useful entry points:
 
 - The released model was trained on **STIROrig + STIR-2024**, although the
   challenge report describes the method primarily in terms of STIROrig.
-- Fine-tuning starts from the STIR-2025 winning LiteTracker checkpoint, not from
-  stock CoTracker3 weights.
 - The 3D submission score is **0.7031**. The offline reproduction reaches
   **0.7383** because it can use annotation-derived right-view start points that
   are unavailable to the submission runtime.
@@ -185,7 +177,7 @@ Useful entry points:
 See [docs/CAVEATS.md](docs/CAVEATS.md) for the complete scope and evaluation
 notes.
 
-## Citing
+## Citation
 
 If this code, checkpoint, or released trajectories are useful, please cite this
 repository and the STIR dataset.
@@ -224,22 +216,11 @@ provenance.
 ## Acknowledgements
 
 We gratefully thank the authors and maintainers of the open research projects
-that made this work possible:
-
-- [CoTracker3](https://github.com/facebookresearch/co-tracker), on which the
-  student architecture and training objective are based, and
-  [LiteTracker](https://arxiv.org/abs/2504.09904), which provides the streaming
-  runtime.
-- [Track-On, Track-On2, and Track-On-R](https://github.com/gorkaydemir/track_on),
+that made this work possible: [CoTracker3](https://github.com/facebookresearch/co-tracker), [LiteTracker](https://arxiv.org/abs/2504.09904), [Track-On, Track-On2, and Track-On-R](https://github.com/gorkaydemir/track_on),
   [AllTracker](https://github.com/aharley/alltracker),
-  [LocoTrack](https://github.com/cvlab-kaist/locotrack), and
-  [MFT](https://github.com/serycjon/MFT), whose models supplied the teacher
-  trajectories used by the verifier.
-- [STIRLoader](https://github.com/athaddius/STIRLoader) and
-  [STIRMetrics](https://github.com/athaddius/STIRMetrics), which provide the
-  dataset-loading and evaluation foundations.
-- The STIR Challenge organisers and dataset contributors for making the data,
-  benchmark, and evaluation framework available.
+  [LocoTrack](https://github.com/cvlab-kaist/locotrack),
+  [MFT](https://github.com/serycjon/MFT), [STIRLoader](https://github.com/athaddius/STIRLoader) and
+  [STIRMetrics](https://github.com/athaddius/STIRMetrics).
 
 ### Funding
 
