@@ -177,11 +177,10 @@ Full detail, including every intermediate artifact directory:
 | `litetracker_finetuned.pth` | reproducing our exact run (it is the initialisation) | STIR 2025 winning entry |
 | `alltracker.pth`, `locotrack_base.ckpt`, `track_on_r.pt`, `trackon2_dinov3_checkpoint.pt` | **label generation only** | the respective upstream releases; place in `track_on/checkpoint/` |
 
-Only `student.pth` is needed to run or evaluate the model. The teacher
-checkpoints are needed only if you regenerate pseudo-labels from scratch.
-
-Put ours at `submission/weights/student.pth` — see
-[submission/weights/README.md](submission/weights/README.md).
+Only `student.pth` is needed to run or evaluate the model. Pass its downloaded
+path as `student_checkpoint=...`; the teacher checkpoints are needed only if
+you regenerate pseudo-labels from scratch. Challenge submission packaging is
+maintained separately and is intentionally not tracked in this repository.
 
 > **Licence:** the weights are **CC BY-NC 4.0**, not MIT. They descend from
 > CoTracker3 / LiteTracker, which are non-commercial. The MIT licence covers the
@@ -231,8 +230,9 @@ bash scripts/train.sh          # ~17 h on one A100 80GB
 ```
 
 Defaults to a fresh run directory and refuses to start if one already holds
-checkpoints — the trainer overwrites `student_e<N>.pth` unconditionally. Add
-`wandb.enabled=false` to skip Weights & Biases.
+checkpoints — the trainer overwrites `student_e<N>.pth` unconditionally. Run
+`bash scripts/preflight.sh` first, or exercise one real optimizer step with
+`bash scripts/smoke_train.sh`. Add `wandb.enabled=false` to skip Weights & Biases.
 
 | | |
 |---|---|
@@ -243,9 +243,10 @@ checkpoints — the trainer overwrites `student_e<N>.pth` unconditionally. Add
 | window_len / train_iters | 16 / 4 |
 | resolution / frames / points | 384×512 / ≤64 per clip / ≤384 per clip |
 
-Every hyperparameter lives in [`src/train.yaml`](src/train.yaml)
-and is overridable on the command line in either `--key value` or `key=value`
-form.
+The exact released configuration is [`configs/reproduce.yaml`](configs/reproduce.yaml),
+and [`configs/smoke.yaml`](configs/smoke.yaml) is its one-clip validation variant.
+Every key is overridable in either `--key value` or `key=value` form; unknown
+keys fail instead of silently changing the wrong setting.
 
 ### 4. Evaluate
 
@@ -269,14 +270,9 @@ stdin, and inside a `while read` loop it will eat the loop's input.
 To compare a reproduction against the released checkpoint on identical clips and
 points, `bash scripts/eval.sh` does both steps and the pairing.
 
-### 5. Build the submission container
-
-```bash
-cd submission && bash build_all.sh && bash test_submission.sh
-```
-
-One image, three tracks; they differ only in entry script and wrapper class. See
-[submission/README.md](submission/README.md).
+The challenge submission packaging is maintained separately and is intentionally
+not tracked here. [`configs/eval_submission.yaml`](configs/eval_submission.yaml)
+captures the submitted model's measurable inference protocol.
 
 ## Repository layout
 
@@ -313,8 +309,8 @@ src/
   visualize_pseudo_labels.py
 
 scripts/      one shell driver per stage; see scripts/README.md
+configs/      exact released, smoke, and evaluation protocol configurations
 tools/        render the student to video, build the README GIFs
-submission/   the three challenge tracks: two wrappers, one Dockerfile
 patches/      the STIRLoader patch, with its base commit
 docs/         reproduction guide, run ledger, measured results, caveats
 ```

@@ -1,9 +1,10 @@
 # Reproducing the shipped model
 
 Target: `agg_e44` — epoch 44 of `fast_run_with2024_agg`, which is
-`submission/weights/student.pth` (md5 `4709eaefce5d4d45c7222c8617d0890f`).
+the released checkpoint (md5 `4709eaefce5d4d45c7222c8617d0890f`, SHA-256
+`3b964f18793bab959d1537aa58b0411bb8454e2df5f30bf6d66039a215c8455c`).
 
-Six steps. Steps 1–2 are the expensive part (GPU-days); if the artifacts they
+Five steps. Steps 1–2 are the expensive part (GPU-days); if the artifacts they
 produce already exist on the cluster you can start at step 3.
 
 Every script reads its paths from `REPO_ROOT`, `THIRDPARTY_ROOT`, `DATA_ROOT`,
@@ -23,14 +24,29 @@ Build the combined dataset root (idempotent, symlinks only):
 bash scripts/make_stir_combined.sh
 ```
 
-Smoke-test the pipeline with no models and no data — this exercises the verifier
-and the fusion end to end on synthetic clips:
+Start with the static/synthetic checks:
 
 ```bash
 python src/verifier.py      # self-test on synthetic tracks: the fused label
                             # beats the teacher that drifts. No models, no data.
 python tools/check_repo.py  # imports, links, scripts -- all still wired up
 ```
+
+Then run the local preflight and the real-data smoke path before submitting a
+17-hour job:
+
+```bash
+bash scripts/preflight.sh
+bash scripts/smoke_phase2.sh
+bash scripts/smoke_train.sh
+bash scripts/smoke_eval.sh /tmp/stir2026-smoke-runs/<run>/student_last.pth
+```
+
+Phase 2 and training use `0__left__seq00` from STIR original; evaluation uses
+`01__left__seq03` from `STIRTest_2025`. Together they check cached-track fusion,
+one GPU forward/backward/update/save cycle, strict checkpoint reload, and one
+streaming evaluation shard. Configuration details are in
+[`../configs/README.md`](../configs/README.md).
 
 ---
 
@@ -97,8 +113,8 @@ bash scripts/train.sh          # or: sbatch scripts/train.sh
 The run directory defaults to **`fast_run_with2024_agg_repro`**, not the
 original name. `model.py` builds it as `<out_dir>/<wandb.run_name>` with
 `exist_ok=True` and writes `student_e<N>.pth` unconditionally, so reusing
-`fast_run_with2024_agg` would overwrite the file `submission/weights/student.pth`
-was copied from. The script refuses to start if the target directory already
+`fast_run_with2024_agg` could overwrite the released run's source checkpoint.
+The script refuses to start if the target directory already
 holds checkpoints. Override with `RUN_NAME=… bash scripts/train.sh`.
 
 Weights & Biases is on by default (`wandb.mode: online`) and needs
@@ -214,18 +230,13 @@ cluster paths and are not part of this repository; the resulting board is
 preserved in [results/ranking.md](results/ranking.md) and the per-checkpoint
 commands in [RUNS.md](RUNS.md).
 
-## 5. Build and test the submission
+## Submission-protocol evaluation
 
-```bash
-cd submission
-cp /mnt/cluster/datasets/STIRprocessed/model_runs/fast_run_with2024_agg/student_e44.pth weights/student.pth
-bash build_all.sh
-bash test_submission.sh     # all three tracks against ../val — do this first
-bash export_all.sh
-```
-
-Details, including the 3D right-view matcher and the geometric consistency
-check, are in [../submission/README.md](../submission/README.md).
+Challenge submission packaging is maintained separately and intentionally is
+not tracked in this repository. The measurable behavior is pinned in
+[`../configs/eval_submission.yaml`](../configs/eval_submission.yaml): image-based
+right-view matching, four refinement iterations, and the measured disparity
+repair (`k=8`, absolute tolerance 8 px, MAD multiplier 3).
 
 ---
 

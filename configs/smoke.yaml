@@ -1,0 +1,33 @@
+# Real-data/GPU smoke test: exactly one optimizer step and one saved checkpoint.
+pseudo_labels_dir: /mnt/cluster/datasets/STIRprocessed/pseudo_labels_with_2024_agg/
+stir_root: /mnt/cluster/datasets/STIRcombined/
+repo_root: /mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/co-tracker
+checkpoint: /mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/track_on/checkpoint/litetracker_finetuned.pth
+skip: 5
+out_dir: /tmp/stir2026-smoke-runs
+model_resolution: [384, 512]
+
+lr: 2.0e-5
+epochs: 1
+window_len: 16
+train_iters: 4
+supervision: weighted
+max_train_frames: 16
+max_points: 16
+seed: 0
+train_clip_ids: [0__left__seq00]
+max_train_clips: 1
+
+val_patients: []
+val_every: 0                  # compatibility key; train.py does no inline eval
+val_max_frames: 0             # evaluator key; not used during training
+
+save_freq: 1
+num_workers: 0
+
+wandb:
+  enabled: false
+  project: stir-student
+  entity: null
+  run_name: smoke_train
+  mode: disabled

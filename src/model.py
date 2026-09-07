@@ -19,6 +19,7 @@ from __future__ import annotations
 import sys
 
 import numpy as np
+from omegaconf import OmegaConf
 
 try:
     import torch
@@ -32,8 +33,9 @@ DEFAULT_CONFIG = {
     "model_resolution": [384, 512],
     "lr": 2.0e-5, "epochs": 10, "window_len": 16, "train_iters": 4,
     "supervision": "weighted", "max_train_frames": 64, "max_points": 384, "seed": 0,
+    "train_clip_ids": [], "max_train_clips": 0,
     "val_patients": [], "val_every": 1, "val_max_frames": 250,
-    "save_freq": 1,
+    "save_freq": 1, "num_workers": 4,
     "wandb": {"enabled": False, "project": "stir-student", "entity": None,
               "run_name": None, "mode": "online"},
 }
@@ -68,6 +70,24 @@ def normalize_overrides(tokens):
                 out.append(tok)
             i += 1
     return out
+
+
+def merge_config_strict(defaults, config_path=None, overrides=()):
+    """Merge a YAML file and CLI dotlist into known defaults only.
+
+    OmegaConf normally accepts unknown keys. That made a historical typo such
+    as ``pseudo-data-sir`` silently leave ``pseudo_labels_dir`` unchanged. A
+    structured config turns the same typo into an immediate, readable error.
+    Entry points must put all of their supported keys in ``defaults`` before
+    calling this helper.
+    """
+    cfg = OmegaConf.create(defaults)
+    OmegaConf.set_struct(cfg, True)
+    if config_path:
+        cfg = OmegaConf.merge(cfg, OmegaConf.load(config_path))
+    if overrides:
+        cfg = OmegaConf.merge(cfg, OmegaConf.from_dotlist(list(overrides)))
+    return cfg
 
 def build_student(checkpoint: str, repo_root: str, window_len: int = 16):
     """Builds the actual trainable CoTrackerThreeOnline module via the co-tracker

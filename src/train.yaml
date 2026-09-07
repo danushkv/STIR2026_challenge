@@ -26,11 +26,16 @@ supervision: weighted         # weighted | uniform (fold verifier per-frame weig
 max_train_frames: 64          # per-clip frame cap (bounds GPU memory); Meta uses 64
 max_points: 384               # per-clip query-point cap; Meta uses 384
 seed: 0
+train_clip_ids: []            # optional exact clip ids, e.g. [0__left__seq00]
+max_train_clips: 0            # 0 = all; deterministic sorted prefix for smoke tests
 
-# --- Validation (STIR endpoint metrics on held-out patients; NO validation loss) ---
-val_patients: []              # patient folders held out for validation AND excluded from training
-val_every: 1                  # run validation every N epochs (0 disables validation)
-val_max_frames: 250           # per-val-clip frame cap (temporal stride, keeps first+last frame)
+# --- Validation-related compatibility keys ---
+# train.py only uses val_patients to exclude data. Evaluation is a separate
+# eval_sweep.py command; val_every is retained because it appears in old saved
+# run configs, and val_max_frames is read by the standalone evaluators.
+val_patients: []              # patient folders excluded from training
+val_every: 1                  # legacy recorded key; no inline validation in train.py
+val_max_frames: 250           # evaluator frame cap; not used by train.py
 
 # --- Checkpointing ---
 save_freq: 1                  # save a numbered checkpoint every N epochs (student_last.pth always saved)
@@ -45,4 +50,3 @@ wandb:
 
 # --- train.py only ---
 num_workers: 4                 # DataLoader worker processes for the prefetching pipeline
-

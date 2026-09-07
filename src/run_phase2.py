@@ -168,6 +168,9 @@ def main():
     p.add_argument("--patients", nargs="+", default=None,
                    help="Only process these patient folders, e.g. --patients 0 1. "
                         "For a quick sanity check before running the full dataset.")
+    p.add_argument("--clip-ids", nargs="+", default=None,
+                   help="Only process these exact clip ids, e.g. "
+                        "--clip-ids 0__left__seq00. Intended for smoke tests.")
     args = p.parse_args()
 
     clip_ids_by_teacher = {t: _discover_clip_ids(args.raw_tracks_root, t) for t in args.teachers}
@@ -179,6 +182,16 @@ def main():
             for t, ids in clip_ids_by_teacher.items()
         }
         print(f"Filtered to patients {sorted(allowed)}")
+    if args.clip_ids is not None:
+        allowed = set(args.clip_ids)
+        clip_ids_by_teacher = {
+            t: ids & allowed for t, ids in clip_ids_by_teacher.items()
+        }
+        found = set.union(*clip_ids_by_teacher.values()) if clip_ids_by_teacher else set()
+        missing = sorted(allowed - found)
+        if missing:
+            raise SystemExit(f"requested clip id(s) not found: {missing}")
+        print(f"Filtered to clip ids {sorted(allowed)}")
 
     for t, ids in clip_ids_by_teacher.items():
         if not ids:

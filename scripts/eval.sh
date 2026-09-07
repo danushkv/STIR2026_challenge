@@ -32,6 +32,8 @@ export STIR_METRICS_ROOT="${STIR_METRICS_ROOT:-${THIRDPARTY_ROOT}/stir-challenge
 export STIR_INFERENCE_ROOT="${STIR_INFERENCE_ROOT:-${THIRDPARTY_ROOT}/stir-challenge-2026-inference}"
 DATA_ROOT="${DATA_ROOT:-/mnt/cluster/datasets}"
 VENV_ROOT="${VENV_ROOT:-/mnt/cluster/environments/venkateda}"
+PYTHON_BIN="${PYTHON_BIN:-${VENV_ROOT}/trackon_env/bin/python}"
+CONFIG="${CONFIG:-${REPO_ROOT}/configs/eval_reproduction.yaml}"
 
 RUN_NAME="${RUN_NAME:-fast_run_with2024_agg_repro}"
 EPOCH="${EPOCH:-44}"
@@ -46,26 +48,27 @@ OUT="${OUT:-${DATA_ROOT}/STIRprocessed/eval_sweep}"
 [ -f "${OUT}/agg_e44.npz" ] || echo "warning: ${OUT}/agg_e44.npz missing -- nothing to pair against"
 
 export PYTHONUNBUFFERED=1
-# shellcheck disable=SC1091
-source "${VENV_ROOT}/trackon_env/bin/activate"
-cd "${REPO_ROOT}/src"
+[ -x "${PYTHON_BIN}" ] || { echo "Python is not executable: ${PYTHON_BIN}"; exit 1; }
+[ -f "${CONFIG}" ] || { echo "config not found: ${CONFIG}"; exit 1; }
 mkdir -p "${OUT}/logs"
 
 echo "tag   ${TAG}"
 echo "ckpt  ${CKPT}"
 echo "iters ${ITERS}"
+echo "config ${CONFIG}"
 echo
 
 # </dev/null is NOT optional: STIRLoader decodes with ffmpeg, ffmpeg reads stdin,
 # and anything that runs this inside a `while read` loop would have its input eaten.
-python3 eval_sweep.py --config train.yaml \
+"${PYTHON_BIN}" "${REPO_ROOT}/src/eval_sweep.py" --config "${CONFIG}" \
     tag="${TAG}" student_checkpoint="${CKPT}" \
     val_stir_root="${TEST_ROOT}" iters_list="${ITERS}" out_dir="${OUT}" \
     < /dev/null 2>&1 | tee "${OUT}/logs/${TAG}.log"
 
 echo
 echo "=== paired comparison against every existing shard ==="
-python3 compare_ckpts.py "${OUT}" --n-boot 10000 --out-dir "${OUT}/analysis_repro"
+"${PYTHON_BIN}" "${REPO_ROOT}/src/compare_ckpts.py" "${OUT}" \
+    --n-boot 10000 --out-dir "${OUT}/analysis_repro"
 
 echo
 echo "read:  ${OUT}/analysis_repro/ranking.md"

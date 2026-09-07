@@ -30,12 +30,10 @@ from torch.utils.data import DataLoader, Dataset
 from omegaconf import OmegaConf
 
 from collect_tracks import _clip_id, _import_stirloader
-from model import (
-    DEFAULT_CONFIG, build_student, normalize_overrides, subsample_for_training,
-)
+from model import (DEFAULT_CONFIG, build_student, merge_config_strict,
+                   normalize_overrides, subsample_for_training)
 
-# num_workers is the one config key train.py's DEFAULT_CONFIG lacks.
-FAST_DEFAULT_CONFIG = dict(DEFAULT_CONFIG, num_workers=4)
+FAST_DEFAULT_CONFIG = dict(DEFAULT_CONFIG)
 
 
 def load_config():
@@ -52,11 +50,7 @@ def load_config():
             i += 1
     overrides = normalize_overrides(raw)
 
-    cfg = OmegaConf.create(FAST_DEFAULT_CONFIG)
-    if config_path:
-        cfg = OmegaConf.merge(cfg, OmegaConf.load(config_path))
-    if overrides:
-        cfg = OmegaConf.merge(cfg, OmegaConf.from_dotlist(overrides))
+    cfg = merge_config_strict(FAST_DEFAULT_CONFIG, config_path, overrides)
 
     missing = [k for k in ("pseudo_labels_dir", "stir_root", "repo_root")
                if OmegaConf.is_missing(cfg, k)]
@@ -234,6 +228,7 @@ def _build_items(cfg, heldout):
     getviddirs2d_STIR, _ = _import_stirloader()
     seq_map = {_clip_id(sp): sp for sp in getviddirs2d_STIR(cfg.stir_root)}
 
+    requested = set(str(c) for c in cfg.train_clip_ids)
     items = []
     missing = 0
     for path in sorted(glob.glob(os.path.join(cfg.pseudo_labels_dir, "**", "*.npz"), recursive=True)):
@@ -242,6 +237,8 @@ def _build_items(cfg, heldout):
             continue
         seq_part = os.path.splitext(os.path.basename(path))[0]
         clip_id = f"{patient}__{seq_part}"
+        if requested and clip_id not in requested:
+            continue
         seq_path = seq_map.get(clip_id)
         if seq_path is None:
             missing += 1
@@ -249,6 +246,13 @@ def _build_items(cfg, heldout):
         items.append((clip_id, path, seq_path))
     if missing:
         print(f"[warn] {missing} pseudo-label clip(s) had no matching STIR video, skipped")
+    if requested:
+        found = {item[0] for item in items}
+        absent = sorted(requested - found)
+        if absent:
+            raise ValueError(f"requested training clip(s) not found: {absent}")
+    if cfg.max_train_clips:
+        items = items[:int(cfg.max_train_clips)]
     return items
 
 
@@ -267,9 +271,15 @@ def train(cfg, wandb_run=None):
     if heldout:
         print(f"Holding patients {sorted(heldout)} OUT of training (for eval_2d.py)")
     use_verifier_weight = (cfg.supervision == "weighted")
+    if cfg.supervision not in ("weighted", "uniform"):
+        raise ValueError("supervision must be 'weighted' or 'uniform'")
+    if cfg.max_train_clips < 0:
+        raise ValueError("max_train_clips must be >= 0")
     min_frames = cfg.window_len // 2 + 1
 
     items = _build_items(cfg, heldout)
+    if not items:
+        raise ValueError("no trainable clips found; check paths and clip filters")
     print(f"{len(items)} trainable clips")
     dataset = PseudoLabelClipDataset(
         items, cfg.skip, cfg.max_train_frames, cfg.max_points, min_frames,

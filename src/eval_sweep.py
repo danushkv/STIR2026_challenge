@@ -51,7 +51,7 @@ from omegaconf import OmegaConf
 from eval_common import STIR_THRESHOLDS_MM, STIR_THRESHOLDS_PX, nn_dist, triangulate_mm
 from collect_tracks import _clip_id, _import_stirloader
 from student_lt_wrapper import load_student_as_litetracker
-from model import DEFAULT_CONFIG, normalize_overrides
+from model import DEFAULT_CONFIG, merge_config_strict, normalize_overrides
 
 
 def _load_match_right():
@@ -106,6 +106,8 @@ def load_config():
     base["student_checkpoint"] = "???"
     base["val_stir_root"] = ""
     base["test_patients"] = []
+    base["eval_clip_ids"] = []
+    base["max_eval_clips"] = 0
     base["iters_list"] = [1, 2, 4]
     base["out_dir"] = "sweep"
     base["skip"] = 1                    # stream every frame; fixed for comparability
@@ -132,13 +134,9 @@ def load_config():
     # abs=3.0. Raise it until only the catastrophic points are touched.
     base["disp_repair_abs"] = 12.0    # px
     base["disp_repair_mad"] = 6.0     # x robust sigma
-    cfg = OmegaConf.create(base)
-    if config_path:
-        cfg = OmegaConf.merge(cfg, OmegaConf.load(config_path))
     ov = normalize_overrides(raw)
     cli_keys = {o.split("=", 1)[0] for o in ov}
-    if ov:
-        cfg = OmegaConf.merge(cfg, OmegaConf.from_dotlist(ov))
+    cfg = merge_config_strict(base, config_path, ov)
 
     # train.yaml is a TRAINING config: it sets skip: 5 (to match how the
     # pseudo-labels were collected) and merges AFTER these defaults, so it would
@@ -214,6 +212,18 @@ def main():
     getviddirs2d_STIR, STIRStereoClip = _import_stirloader()
     seqs = {_clip_id(p): p for p in getviddirs2d_STIR(stir_root)
             if (not patients) or _clip_id(p).split("__", 1)[0] in patients}
+    requested = set(str(c) for c in cfg.eval_clip_ids)
+    if requested:
+        absent = sorted(requested - set(seqs))
+        if absent:
+            raise ValueError(f"requested evaluation clip(s) not found: {absent}")
+        seqs = {cid: path for cid, path in seqs.items() if cid in requested}
+    if cfg.max_eval_clips < 0:
+        raise ValueError("max_eval_clips must be >= 0")
+    if cfg.max_eval_clips:
+        seqs = dict(sorted(seqs.items())[:int(cfg.max_eval_clips)])
+    if not seqs:
+        raise ValueError("no evaluation clips found; check paths and clip filters")
     if cfg.skip > 1:
         os.environ["SKIP"] = str(cfg.skip)
     iters_list = [int(i) for i in cfg.iters_list]

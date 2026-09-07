@@ -93,7 +93,7 @@ def load_student_as_litetracker(weights, window_len: int = 16, iters: int = 1,
 
     model = LiteTracker(window_len=window_len, iters=iters)
 
-    state_dict = torch.load(weights, map_location="cpu")
+    state_dict = torch.load(weights, map_location="cpu", weights_only=True)
     wrapped = isinstance(state_dict, dict) and "model" in state_dict
     if wrapped:
         state_dict = state_dict["model"]
@@ -238,7 +238,7 @@ def _verify(args):
     print(f"  export STUDENT_LT_ITERS={args.iters}")
     print("  uv run mono.py --data_dir <dataset> --output_dir results \\")
     print("      --model student_lt_wrapper.StudentLTWrapper")
-    print("\nThen benchmark iters=1/2/4 -- you trained at 4, LiteTracker defaults to 1.")
+    print("\nThen benchmark iters=1/2/4; inference refinement is independent of the saved weights.")
     return 0
 
 

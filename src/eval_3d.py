@@ -44,7 +44,7 @@ from omegaconf import OmegaConf
 from eval_common import STIR_THRESHOLDS_MM, nn_dist, triangulate_mm
 from collect_tracks import _clip_id, _import_stirloader
 from student_lt_wrapper import load_student_as_litetracker
-from model import DEFAULT_CONFIG, normalize_overrides
+from model import DEFAULT_CONFIG, merge_config_strict, normalize_overrides
 from eval_2d import track_clip_streaming
 
 
@@ -69,11 +69,7 @@ def load_config():
     base["test_patients"] = []
     base["lt_iters"] = 1     # LiteTracker refinement iters per frame
     base["skip"] = 1         # stream every frame (see docstring)
-    cfg = OmegaConf.create(base)
-    if config_path:
-        cfg = OmegaConf.merge(cfg, OmegaConf.load(config_path))
-    if overrides:
-        cfg = OmegaConf.merge(cfg, OmegaConf.from_dotlist(overrides))
+    cfg = merge_config_strict(base, config_path, overrides)
 
 
     # train.yaml is a TRAINING config (skip: 5, val_max_frames: 250) and

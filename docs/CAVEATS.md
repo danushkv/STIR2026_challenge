@@ -99,7 +99,8 @@ both views. The 2026 harness gives left-view queries only. The shipped container
 recovers the right-view points from pixels by NCC along the epipolar row, which
 costs 0.052 acc_avg; the geometric consistency check recovers 0.017 of that.
 
-Expect **0.7031**, not 0.7383. `submission/CHECKPOINT.txt` has the full table.
+Expect **0.7031**, not 0.7383. The exact measurable submission settings are in
+[`../configs/eval_submission.yaml`](../configs/eval_submission.yaml).
 
 ## 8. Training is not bit-reproducible
 

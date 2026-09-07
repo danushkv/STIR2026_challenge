@@ -20,7 +20,7 @@ DATA_ROOT="${DATA_ROOT:-/mnt/cluster/datasets}"
 CLIP="${CLIP:-0__left__seq00}"
 STIR_ROOT="${STIR_ROOT:-${DATA_ROOT}/STIRDataset}"
 PL_DIR="${PL_DIR:-${DATA_ROOT}/STIRprocessed/pseudo_labels_with_2024_agg}"
-CKPT=/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/submission/weights/student.pth
+CKPT="${CKPT:-${DATA_ROOT}/STIRprocessed/model_runs/fast_run_with2024_agg/student_e44.pth}"
 SECONDS_LEN="${SECONDS_LEN:-6}"
 WIDTH="${WIDTH:-420}"
 # Surgical video is high-entropy and GIF compresses it badly -- ~126 KB/frame at
@@ -28,12 +28,17 @@ WIDTH="${WIDTH:-420}"
 # almost nothing visually on tissue; width is the next one.
 MAX_COLORS="${MAX_COLORS:-128}"
 FPS="${FPS:-8}"
+# Query points for the student GIF. 64 px is what the 2026 harness hands the
+# container -- 320 points on a 1280x1024 frame: dense, and faithful to the real
+# workload. Raise it (96 -> 143 points, 128 -> 80) for a less busy picture.
+GRID="${GRID:-64}"
+TRAIL="${TRAIL:-15}"
 
 OUT="${REPO_ROOT}/assets"; mkdir -p "${OUT}"
 WORK="$(mktemp -d)"; trap 'rm -rf "${WORK}"' EXIT
 
 command -v ffmpeg >/dev/null || { echo "ffmpeg not found"; exit 1; }
-[ -f "${CKPT}" ] || { echo "checkpoint not found: ${CKPT} (see submission/weights/README.md)"; exit 1; }
+[ -f "${CKPT}" ] || { echo "checkpoint not found: ${CKPT} (override with CKPT=/path/student.pth)"; exit 1; }
 
 gif() {   # $1 in.mp4  $2 out.gif
   local VF="fps=${FPS},scale=${WIDTH}:-1:flags=lanczos"

@@ -1,0 +1,22 @@
+# Offline evaluation used for the report/reproduction comparison. Stereo start
+# points come from both-view annotations and are not available to the challenge
+# submission harness.
+tag: released_reproduction_protocol
+student_checkpoint: /mnt/cluster/datasets/STIRprocessed/model_runs/fast_run_with2024_agg/student_e44.pth
+val_stir_root: /mnt/cluster/datasets/STIRTest_2025
+test_patients: []
+eval_clip_ids: []
+max_eval_clips: 0
+iters_list: [1, 2, 4]
+out_dir: /mnt/cluster/datasets/STIRprocessed/eval_reproduction
+skip: 1
+val_max_frames: 0
+do_drift: true
+right_queries: segs
+disp_min_true: 4.0
+disp_max_true: 120.0
+match_lr_tol: 0.0
+match_repair_ncc: 0.0
+disp_repair_k: 0
+disp_repair_abs: 12.0
+disp_repair_mad: 6.0

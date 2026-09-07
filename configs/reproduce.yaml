@@ -1,0 +1,34 @@
+# Effective configuration of fast_run_with2024_agg, with paths resolved for
+# this repository. Scientific/training values match the saved run config.
+pseudo_labels_dir: /mnt/cluster/datasets/STIRprocessed/pseudo_labels_with_2024_agg/
+stir_root: /mnt/cluster/datasets/STIRcombined/
+repo_root: /mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/co-tracker
+checkpoint: /mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/track_on/checkpoint/litetracker_finetuned.pth
+skip: 5
+out_dir: /mnt/cluster/datasets/STIRprocessed/model_runs
+model_resolution: [384, 512]
+
+lr: 2.0e-5
+epochs: 45
+window_len: 16
+train_iters: 4
+supervision: weighted
+max_train_frames: 64
+max_points: 384
+seed: 0
+train_clip_ids: []
+max_train_clips: 0
+
+val_patients: []
+val_every: 1                  # recorded compatibility key; train.py does no inline eval
+val_max_frames: 250           # evaluator key; not used during training
+
+save_freq: 2
+num_workers: 4
+
+wandb:
+  enabled: true
+  project: stir-student
+  entity: null
+  run_name: fast_run_with2024_agg_repro
+  mode: online

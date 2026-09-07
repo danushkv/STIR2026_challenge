@@ -184,10 +184,13 @@ def check_shell_unbound():
     the check that a syntax check cannot do for you.
     """
     global checked
-    # NAME= anywhere it is a real assignment: not preceded by a word char, `$`
-    # or `-`, so `--flag=x` and `${X}` do not count but `case p) NAME=v ;;` and
-    # `local NAME=v` do. Erring toward "assigned" is the safe direction here.
-    assign = re.compile(r"(?<![\w$-])([A-Za-z_][A-Za-z0-9_]*)=")
+    # NAME= only in COMMAND position: line start, or after a separator, a
+    # case-branch `)`, or local/export/declare. Matching it anywhere would let
+    # `echo "GRID=${GRID}"` register GRID as assigned, which is exactly the bug
+    # this check exists to find.
+    assign = re.compile(
+        r"(?:^|[;&|)}{]|\bthen\b|\bdo\b|\belse\b|\blocal\b|\bexport\b"
+        r"|\bdeclare\b|\breadonly\b)\s*([A-Za-z_][A-Za-z0-9_]*)=", re.M)
     loopvar = re.compile(r"\bfor\s+([A-Za-z_][A-Za-z0-9_]*)\s+in\b|\bread\s+(?:-r\s+)?([A-Za-z_][A-Za-z0-9_]*)")
     # ${VAR:-x} ${VAR:=x} ${VAR:?x} ${VAR+x} ${VAR#...} etc. all guard the ref
     guarded = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)[:+\-=?#%/^,]")
@@ -199,8 +202,19 @@ def check_shell_unbound():
         text = p.read_text(errors="ignore")
         if "set -" not in text or "u" not in re.search(r"set -\w+", text).group(0):
             continue                      # not running under `set -u`
-        defined = set(assign.findall(text)) | SHELL_BUILTIN_VARS
-        for m in loopvar.finditer(text):
+        # Assignments are looked for outside comments and quoted spans, so that
+        # `echo "GRID=${GRID}"` does not register GRID as assigned -- precisely
+        # the bug this check exists to catch. Done LINE BY LINE: an apostrophe
+        # in a comment ("ffmpeg\'s default") would otherwise open a quote span
+        # that swallows the rest of the file.
+        code_lines = []
+        for ln in text.splitlines():
+            ln = re.sub(r"(?:^|\s)#.*$", "", ln)              # drop the comment
+            ln = re.sub(r"\"[^\"]*\"|'[^']*'", " ", ln)        # blank quoted spans
+            code_lines.append(ln)
+        unquoted = "\n".join(code_lines)
+        defined = set(assign.findall(unquoted)) | SHELL_BUILTIN_VARS
+        for m in loopvar.finditer(unquoted):
             defined.update(x for x in m.groups() if x)
         defined |= set(guarded.findall(text))
         for m in use.finditer(text):
