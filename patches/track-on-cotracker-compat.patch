@@ -1,0 +1,50 @@
+diff --git a/ensemble/cotracker.py b/ensemble/cotracker.py
+index 839f496..4d35230 100644
+--- a/ensemble/cotracker.py
++++ b/ensemble/cotracker.py
+@@ -2,13 +2,20 @@ import torch
+ import torch.nn as nn
+ 
+ class CoTracker_Predictor(nn.Module):
+-    def __init__(self, windowed=False):
++    def __init__(self, windowed=False, checkpoint_path=None):
+         super().__init__()
+         version = "cotracker3_online" if windowed else "cotracker3_offline"
+         self.windowed = windowed
+         self.model = torch.hub.load("facebookresearch/co-tracker", version).eval()
+         self.grid_size = 10
+ 
++        if checkpoint_path is not None:
++            state_dict = torch.load(checkpoint_path, map_location="cpu")
++            if "model" in state_dict:
++                state_dict = state_dict["model"]
++            self.model.model.load_state_dict(state_dict, strict=True)
++            self.model.eval()
++
+     def forward(self, video, queries):
+         # :args video: (B, T, 3, H, W), in [0, 255] range
+         # :args queries: (B, N, 3)
+@@ -17,9 +24,21 @@ class CoTracker_Predictor(nn.Module):
+         # :returns pred_visibility: (B, T, N)
+         
+         if self.windowed:
++            T = video.shape[1]
++            step = self.model.step
++            # CoTracker3-online needs at least step*2+1 frames. Pad short
++            # clips by repeating the final frame, then trim the result.
++            min_frames = step * 2 + 1
++            if T < min_frames:
++                pad = video[:, -1:].expand(-1, min_frames - T, -1, -1, -1)
++                video = torch.cat([video, pad], dim=1)
++
+             self.model(video_chunk=video, is_first_step=True, queries=queries, grid_size=self.grid_size)  
+-            for ind in range(0, video.shape[1] - self.model.step, self.model.step):
+-                pred_tracks, pred_visibility = self.model(video[:, ind : ind + self.model.step * 2])
++            for ind in range(0, video.shape[1] - step, step):
++                pred_tracks, pred_visibility = self.model(video[:, ind : ind + step * 2])
+                 
++            pred_tracks = pred_tracks[:, :T]
++            pred_visibility = pred_visibility[:, :T]
++
+         else:
+             pred_tracks, pred_visibility = self.model(video, queries, grid_size=self.grid_size)

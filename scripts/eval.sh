@@ -24,15 +24,17 @@
 # the record every number in the report came from -- is left untouched.
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/stir2026-nct}"
-export THIRDPARTY_ROOT="${THIRDPARTY_ROOT:-/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env}"
+if [ -f "${ENV_FILE}" ]; then set -a; source "${ENV_FILE}"; set +a; fi
+export THIRDPARTY_ROOT="${THIRDPARTY_ROOT:-$(cd "${REPO_ROOT}/.." && pwd)}"
 export STIRLOADER_ROOT="${STIRLOADER_ROOT:-${THIRDPARTY_ROOT}/STIRLoader}"
 export LITETRACKER_ROOT="${LITETRACKER_ROOT:-${THIRDPARTY_ROOT}/lite-tracker-master}"
 export STIR_METRICS_ROOT="${STIR_METRICS_ROOT:-${THIRDPARTY_ROOT}/stir-challenge-2026-metrics}"
 export STIR_INFERENCE_ROOT="${STIR_INFERENCE_ROOT:-${THIRDPARTY_ROOT}/stir-challenge-2026-inference}"
-DATA_ROOT="${DATA_ROOT:-/mnt/cluster/datasets}"
-VENV_ROOT="${VENV_ROOT:-/mnt/cluster/environments/venkateda}"
-PYTHON_BIN="${PYTHON_BIN:-${VENV_ROOT}/trackon_env/bin/python}"
+DATA_ROOT="${DATA_ROOT:-${REPO_ROOT}/data}"
+PYTHON_BIN="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"
 CONFIG="${CONFIG:-${REPO_ROOT}/configs/eval_reproduction.yaml}"
 
 RUN_NAME="${RUN_NAME:-fast_run_with2024_agg_repro}"
@@ -40,9 +42,9 @@ EPOCH="${EPOCH:-44}"
 TAG="${TAG:-agg_e${EPOCH}_repro}"
 ITERS="${ITERS:-[1,2,4]}"
 
-CKPT="${DATA_ROOT}/STIRprocessed/model_runs/${RUN_NAME}/student_e${EPOCH}.pth"
-TEST_ROOT="${TEST_ROOT:-${DATA_ROOT}/STIRTest_2025}"
-OUT="${OUT:-${DATA_ROOT}/STIRprocessed/eval_sweep}"
+CKPT="${STUDENT_CHECKPOINT:-${DATA_ROOT}/STIRprocessed/model_runs/${RUN_NAME}/student_e${EPOCH}.pth}"
+TEST_ROOT="${STIR_TEST_ROOT:-${DATA_ROOT}/STIRTest_2025}"
+OUT="${OUT:-${EVAL_ROOT:-${DATA_ROOT}/STIRprocessed/eval_sweep}}"
 
 [ -f "${CKPT}" ] || { echo "no checkpoint at ${CKPT}"; exit 1; }
 [ -f "${OUT}/agg_e44.npz" ] || echo "warning: ${OUT}/agg_e44.npz missing -- nothing to pair against"

@@ -1,10 +1,10 @@
 # scripts/
 
-One script per pipeline stage. Each defaults its paths to our cluster and lets
-you override them:
+One script per pipeline stage. Copy `.env.example` to `.env` once; every driver
+loads it automatically. Individual environment variables can still override it:
 
 ```bash
-REPO_ROOT=… THIRDPARTY_ROOT=… DATA_ROOT=… VENV_ROOT=… bash <script>
+THIRDPARTY_ROOT=… DATA_ROOT=… PYTHON_BIN=… bash <script>
 ```
 
 Run in this order. [docs/REPRODUCE.md](../docs/REPRODUCE.md) is the narrative
@@ -36,5 +36,5 @@ for the exact released, smoke, and evaluation configurations.
 
 After editing anything here, run `python tools/check_repo.py`.
 
-The `#SBATCH` headers carry our cluster's partitions and a `--mail-user`.
-Change or delete them before running elsewhere.
+The `#SBATCH` headers record the resource requests used for the release. Change
+or delete them before submitting on a cluster with different resource syntax.

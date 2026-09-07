@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="480" viewBox="0 0 1400 480" role="img" aria-labelledby="title desc">
+  <title id="title">VG-T — Verifier-Guided Tracking</title>
+  <desc id="desc">Six offline point trackers feed a verifier based on endpoint anchoring, cycle consistency, and teacher agreement. Weighted pseudo-labels train one LiteTracker student for streaming 2D and 3D output.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#eef2ff"/>
+    </linearGradient>
+    <linearGradient id="verifier" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff7ed"/>
+      <stop offset="1" stop-color="#ffedd5"/>
+    </linearGradient>
+    <linearGradient id="labels" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ecfdf5"/>
+      <stop offset="1" stop-color="#d1fae5"/>
+    </linearGradient>
+    <linearGradient id="student" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff1f2"/>
+      <stop offset="1" stop-color="#ffe4e6"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#0f172a" flood-opacity=".12"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+    <style>
+      text{font-family:Inter,Arial,sans-serif;fill:#0f172a}
+      .eyebrow{font-size:15px;font-weight:700;letter-spacing:1.8px;fill:#64748b}
+      .heading{font-size:25px;font-weight:750}
+      .body{font-size:16px;fill:#475569}
+      .small{font-size:14px;fill:#64748b}
+      .teacher{fill:#eff6ff;stroke:#93c5fd;stroke-width:1.5}
+      .teacherText{font-size:16px;font-weight:650;fill:#1e3a8a}
+      .arrow{fill:none;stroke:#64748b;stroke-width:2.2;marker-end:url(#arrow)}
+      .signal{fill:#fff;stroke:#fdba74;stroke-width:1}
+      .signalText{font-size:14px;font-weight:600;fill:#9a3412}
+      .signalNumber{font-size:12px;font-weight:800;fill:#fff}
+      .legend{font-size:14px;font-weight:600;fill:#475569}
+    </style>
+  </defs>
+
+  <rect width="1400" height="540" rx="28" fill="url(#bg)"/>
+  <text x="50" y="48" class="eyebrow">VG-T — VERIFIER-GUIDED TRACKING</text>
+  <text x="50" y="80" class="heading">Six perspectives become one reliable streaming tracker</text>
+
+  <g transform="translate(50 112)">
+    <text x="145" y="0" text-anchor="middle" class="eyebrow">OFFLINE TEACHERS</text>
+    <g filter="url(#shadow)">
+      <rect class="teacher" x="0" y="24" width="138" height="58" rx="13"/>
+      <rect class="teacher" x="152" y="24" width="138" height="58" rx="13"/>
+      <rect class="teacher" x="0" y="96" width="138" height="58" rx="13"/>
+      <rect class="teacher" x="152" y="96" width="138" height="58" rx="13"/>
+      <rect class="teacher" x="0" y="168" width="138" height="58" rx="13"/>
+      <rect class="teacher" x="152" y="168" width="138" height="58" rx="13"/>
+    </g>
+    <text class="teacherText" x="69" y="59" text-anchor="middle">CoTracker3</text>
+    <text class="teacherText" x="221" y="59" text-anchor="middle">AllTracker</text>
+    <text class="teacherText" x="69" y="131" text-anchor="middle">LocoTrack</text>
+    <text class="teacherText" x="221" y="131" text-anchor="middle">MFT</text>
+    <text class="teacherText" x="69" y="203" text-anchor="middle">Track-On2</text>
+    <text class="teacherText" x="221" y="203" text-anchor="middle">Track-On-R</text>
+    <text x="145" y="262" text-anchor="middle" class="small">candidate trajectories + confidence</text>
+  </g>
+
+  <path class="arrow" d="M350 250 C385 250 394 250 425 250"/>
+
+  <g transform="translate(425 132)" filter="url(#shadow)">
+    <rect width="260" height="236" rx="20" fill="url(#verifier)" stroke="#fb923c" stroke-width="2"/>
+    <circle cx="34" cy="36" r="14" fill="#f97316"/>
+    <path d="M28 36l4 4 8-10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="58" y="44" class="heading">Verifier</text>
+    <text x="130" y="78" text-anchor="middle" class="body">Per-teacher, per-frame scoring</text>
+    <rect class="signal" x="24" y="98" width="212" height="34" rx="9"/>
+    <rect class="signal" x="24" y="142" width="212" height="34" rx="9"/>
+    <rect class="signal" x="24" y="186" width="212" height="34" rx="9"/>
+    <circle cx="45" cy="115" r="10" fill="#f97316"/>
+    <circle cx="45" cy="159" r="10" fill="#f97316"/>
+    <circle cx="45" cy="203" r="10" fill="#f97316"/>
+    <text x="45" y="119" text-anchor="middle" class="signalNumber">1</text>
+    <text x="45" y="163" text-anchor="middle" class="signalNumber">2</text>
+    <text x="45" y="207" text-anchor="middle" class="signalNumber">3</text>
+    <text x="61" y="120" class="signalText">Endpoint anchoring</text>
+    <text x="61" y="164" class="signalText">Cycle consistency</text>
+    <text x="61" y="208" class="signalText">Teacher agreement</text>
+  </g>
+
+  <path class="arrow" d="M685 250 H742"/>
+
+  <g transform="translate(742 156)" filter="url(#shadow)">
+    <rect width="218" height="188" rx="20" fill="url(#labels)" stroke="#34d399" stroke-width="2"/>
+    <text x="109" y="43" text-anchor="middle" class="heading">Pseudo-labels</text>
+    <text x="109" y="74" text-anchor="middle" class="body">select  |  aggregate</text>
+    <line x1="30" x2="188" y1="94" y2="94" stroke="#6ee7b7"/>
+    <text x="109" y="124" text-anchor="middle" class="body">trajectory</text>
+    <text x="109" y="150" text-anchor="middle" class="body">+ per-frame weight</text>
+    <circle cx="62" cy="166" r="5" fill="#059669"/>
+    <path d="M67 166 C91 142 126 183 156 158" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <g transform="translate(763 378)">
+    <rect width="176" height="56" rx="14" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 5"/>
+    <text x="88" y="23" text-anchor="middle" class="small" font-weight="700">Densification</text>
+    <text x="88" y="42" text-anchor="middle" class="small">exploratory ablation</text>
+    <path d="M88 0 V-28" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+  </g>
+
+  <path class="arrow" d="M960 250 H1014"/>
+
+  <g transform="translate(1014 175)" filter="url(#shadow)">
+    <rect width="208" height="150" rx="20" fill="url(#student)" stroke="#fb7185" stroke-width="2"/>
+    <text x="104" y="44" text-anchor="middle" class="heading">LiteTracker</text>
+    <text x="104" y="72" text-anchor="middle" class="heading">student</text>
+    <line x1="28" x2="180" y1="92" y2="92" stroke="#fda4af"/>
+    <text x="104" y="120" text-anchor="middle" class="body">CoTracker3 objective</text>
+    <text x="104" y="141" text-anchor="middle" class="small">weighted supervision</text>
+  </g>
+
+  <path class="arrow" d="M1222 222 H1260"/>
+  <path class="arrow" d="M1222 278 H1260"/>
+  <g transform="translate(1260 170)" filter="url(#shadow)">
+    <rect width="102" height="78" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/>
+    <text x="51" y="34" text-anchor="middle" class="heading">2D</text>
+    <text x="51" y="57" text-anchor="middle" class="small">streaming</text>
+    <rect y="92" width="102" height="92" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/>
+    <text x="51" y="126" text-anchor="middle" class="heading">3D</text>
+    <text x="51" y="149" text-anchor="middle" class="small">dual track + NCC</text>
+    <text x="51" y="169" text-anchor="middle" class="small">+ consistency</text>
+  </g>
+
+  <g transform="translate(50 456)">
+    <circle cx="9" cy="-5" r="9" fill="#f97316"/>
+    <text x="9" y="-1" text-anchor="middle" class="signalNumber">1</text>
+    <text x="24" y="0" class="legend">endpoint ground truth · supervised</text>
+    <circle cx="300" cy="-5" r="9" fill="#f97316"/>
+    <text x="300" y="-1" text-anchor="middle" class="signalNumber">2</text>
+    <text x="315" y="0" class="legend">forward/backward cycle · SSL</text>
+    <circle cx="577" cy="-5" r="9" fill="#f97316"/>
+    <text x="577" y="-1" text-anchor="middle" class="signalNumber">3</text>
+    <text x="592" y="0" class="legend">cross-teacher consensus · SSL</text>
+  </g>
+</svg>

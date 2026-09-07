@@ -10,7 +10,7 @@ only the forward/backward.
 
 Everything else -- model, losses, config system, wandb logging, run dir,
 checkpointing, val_patients holdout -- matches train.py, whose helpers
-are imported directly. Validation still lives in eval_2d.py.
+are imported directly. Validation lives in eval_sweep.py.
 
     python train.py --config train.yaml \\
         num_workers=8 wandb.run_name=fast_run
@@ -269,7 +269,7 @@ def train(cfg, wandb_run=None):
     model_resolution = tuple(cfg.model_resolution)
     heldout = set(str(p) for p in cfg.val_patients)
     if heldout:
-        print(f"Holding patients {sorted(heldout)} OUT of training (for eval_2d.py)")
+        print(f"Holding patients {sorted(heldout)} OUT of training (for eval_sweep.py)")
     use_verifier_weight = (cfg.supervision == "weighted")
     if cfg.supervision not in ("weighted", "uniform"):
         raise ValueError("supervision must be 'weighted' or 'uniform'")

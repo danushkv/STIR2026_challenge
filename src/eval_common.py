@@ -1,6 +1,6 @@
 """Metric helpers shared by the streaming evaluators.
 
-These lived in the non-streaming `eval_2d.py` / `eval_3d.py`,
+These definitions are shared by the streaming evaluation pipeline,
 which ran CoTracker3's whole-clip sliding-window forward. That is not the
 forward pass the challenge scores, so those two scripts were dropped and only
 the pieces that define the METRIC were kept here -- unchanged, so numbers stay

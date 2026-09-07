@@ -9,9 +9,10 @@ These files separate the recorded experiment from small validation runs.
 | `eval_reproduction.yaml` | reported offline protocol using annotation-derived stereo starts |
 | `eval_submission.yaml` | submitted 3D protocol using image matching and disparity repair |
 
-The paths are intentionally still the current cluster paths. They remain here
-until the local preflight and smoke runs pass. Portability is a separate pass:
-do not change paths and training behavior at the same time.
+Machine-local paths use OmegaConf's `oc.env` resolver. Copy `.env.example` to
+`.env`; the shell drivers load and export it automatically. Each value also has
+a repository-relative fallback so opening a config does not expose a private
+filesystem path.
 
 Command-line overrides are strict. Unknown keys fail instead of silently
 creating a new OmegaConf entry.

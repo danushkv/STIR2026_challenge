@@ -2,9 +2,11 @@
 # Run one real GPU optimizer step, save it, and strictly reload the checkpoint.
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/stir2026-nct}"
-VENV_ROOT="${VENV_ROOT:-/mnt/cluster/environments/venkateda}"
-PYTHON_BIN="${PYTHON_BIN:-${VENV_ROOT}/trackon_env/bin/python}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env}"
+if [ -f "${ENV_FILE}" ]; then set -a; source "${ENV_FILE}"; set +a; fi
+PYTHON_BIN="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"
 OUT_DIR="${OUT_DIR:-${TMPDIR:-/tmp}/stir2026-smoke-runs}"
 RUN_NAME="${RUN_NAME:-smoke_$(date +%Y%m%d_%H%M%S)}"
 CONFIG="${CONFIG:-${REPO_ROOT}/configs/smoke.yaml}"

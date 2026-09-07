@@ -8,13 +8,13 @@
 # Required keys are left as ??? (OmegaConf raises if still missing at run time).
 
 # --- Data ---
-pseudo_labels_dir: /mnt/cluster/datasets/STIRprocessed/pseudo_labels/        # run_phase2.py's --out-dir (<pl>/<patient>/<seq>.npz)
-stir_root: /mnt/cluster/datasets/STIRDataset                # STIR dataset root, for real frames + start/end centers
+pseudo_labels_dir: ${oc.env:PSEUDO_LABELS_DIR,./data/pseudo_labels} # run_phase2.py's --out-dir
+stir_root: ${oc.env:STIR_TRAIN_ROOT,./data/STIRDataset}      # real frames + start/end centers
 # Absolute: scripts are launched from several working directories.
-repo_root: /mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/co-tracker    # cloned facebookresearch/co-tracker
-checkpoint: "/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/lite-tracker-master/model/scaled_online.pth"                # e.g. <repo_root>/checkpoints/scaled_online.pth
+repo_root: ${oc.env:COTRACKER_ROOT,../co-tracker}            # cloned facebookresearch/co-tracker
+checkpoint: ${oc.env:INIT_CKPT,./artifacts/scaled_online.pth}
 skip: 5                       # must match the --skip used to collect the pseudo-labels
-out_dir: /mnt/cluster/datasets/STIRprocessed/model_runs
+out_dir: ${oc.env:RUNS_ROOT,./runs}
 model_resolution: [384, 512]  # CoTracker3's trained working resolution (h, w)
 
 # --- Optimization ---

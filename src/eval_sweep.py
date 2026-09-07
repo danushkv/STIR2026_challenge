@@ -28,13 +28,13 @@ order. Clip order is `sorted(clip_id)` and the points come from the data, not
 the model, so shards stay aligned by construction -- compare_ckpts.py asserts it.
 Re-decoding per shard costs ~2 min and buys full cluster parallelism.
 
-Protocol matches eval_2d.py / eval_3d.py exactly:
+This is the canonical evaluator for all reported metrics:
 streaming/causal, skip=1, no temporal striding. `model.iters` is a plain
 attribute read at forward time, so the iters sweep mutates it in place.
 
     python eval_sweep.py --config train.yaml \
         tag=A_trial_e45 student_checkpoint=/path/student_last.pth \
-        val_stir_root=/mnt/cluster/datasets/STIRTest_2025 \
+        val_stir_root=<data>/STIRTest_2025 \
         iters_list=[1,2,4] out_dir=/path/sweep
 """
 from __future__ import annotations
@@ -142,7 +142,7 @@ def load_config():
     # pseudo-labels were collected) and merges AFTER these defaults, so it would
     # silently override the streaming protocol and evaluate every 5th frame. The
     # 2026 harness streams EVERY frame, so restore the protocol unless the CLI
-    # explicitly asked otherwise. eval_2d.py and eval_3d.py
+    # explicitly asked otherwise. Earlier standalone evaluators
     # have the same latent bug -- their docstrings promise skip=1 and they do not
     # deliver it.
     for k, v in (("skip", 1), ("val_max_frames", 0)):
@@ -160,9 +160,8 @@ def load_config():
 def stream_track(model, frames, start_pts, device, dtype, collect_vis=False):
     """Stream frames [T,H,W,3] uint8 through LiteTracker one frame at a time.
 
-    Returns (final_coords [N,2] native px, vis [T,N] float 0/1 or None). Same
-    forward path as eval_2d.track_clip_streaming; this variant can
-    also retain per-frame visibility, which that one discards.
+    Returns (final_coords [N,2] native px, vis [T,N] float 0/1 or None).
+    Optionally retains per-frame visibility for the combined metric shard.
     """
     model.init_video_online_processing()
     q = torch.from_numpy(np.asarray(start_pts, dtype=np.float32)).unsqueeze(0).to(device)

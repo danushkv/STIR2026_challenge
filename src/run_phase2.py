@@ -24,8 +24,8 @@ verifier.py) -- independent of which teachers happen to cover the clip.
 
 Usage:
     python run_phase2.py \\
-        --raw-tracks-root /mnt/cluster/datasets/STIRprocessed \\
-        --stir-root /mnt/cluster/datasets/STIRDataset \\
+        --raw-tracks-root <data>/STIRprocessed \\
+        --stir-root <data>/STIRDataset \\
         --teachers mft mftiq cotracker3 locotrack bootstapir alltracker peng_tracker_all \\
         --out-dir data/pseudo_labels
 """
@@ -152,7 +152,7 @@ def main():
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--raw-tracks-root", required=True,
                    help="parent of the per-teacher folders written by collect_tracks.py, "
-                        "e.g. /mnt/cluster/datasets/STIRprocessed")
+                        "e.g. <data>/STIRprocessed")
     p.add_argument("--stir-root", required=True, help="STIR dataset root, for endpoints")
     p.add_argument("--teachers", nargs="+", required=True,
                    help="e.g. mft mftiq cotracker3 locotrack bootstapir alltracker "
@@ -236,8 +236,8 @@ if __name__ == "__main__":
 
 
 # python run_phase2.py \
-#   --raw-tracks-root /mnt/cluster/datasets/STIRprocessed \
-#   --stir-root /mnt/cluster/datasets/STIRDataset \
+#   --raw-tracks-root <data>/STIRprocessed \
+#   --stir-root <data>/STIRDataset \
 #   --teachers mft mftiq cotracker3 locotrack bootstapir alltracker peng_tracker_all \
 #   --out-dir /tmp/pseudo_labels_sanity \
 #   --patients 16 \

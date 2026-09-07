@@ -38,15 +38,21 @@
 #   RUN_NAME=my_run bash train.sh
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/stir2026-nct}"
-export THIRDPARTY_ROOT="${THIRDPARTY_ROOT:-/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env}"
+if [ -f "${ENV_FILE}" ]; then set -a; source "${ENV_FILE}"; set +a; fi
+export THIRDPARTY_ROOT="${THIRDPARTY_ROOT:-$(cd "${REPO_ROOT}/.." && pwd)}"
 export STIRLOADER_ROOT="${STIRLOADER_ROOT:-${THIRDPARTY_ROOT}/STIRLoader}"
 export LITETRACKER_ROOT="${LITETRACKER_ROOT:-${THIRDPARTY_ROOT}/lite-tracker-master}"
 export STIR_METRICS_ROOT="${STIR_METRICS_ROOT:-${THIRDPARTY_ROOT}/stir-challenge-2026-metrics}"
-DATA_ROOT="${DATA_ROOT:-/mnt/cluster/datasets}"
-VENV_ROOT="${VENV_ROOT:-/mnt/cluster/environments/venkateda}"
-PYTHON_BIN="${PYTHON_BIN:-${VENV_ROOT}/trackon_env/bin/python}"
+DATA_ROOT="${DATA_ROOT:-${REPO_ROOT}/data}"
+PYTHON_BIN="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"
 CONFIG="${CONFIG:-${REPO_ROOT}/configs/reproduce.yaml}"
+export PSEUDO_LABELS_DIR="${PSEUDO_LABELS_DIR:-${DATA_ROOT}/STIRprocessed/pseudo_labels_with_2024_agg}"
+export STIR_TRAIN_ROOT="${STIR_TRAIN_ROOT:-${DATA_ROOT}/STIRcombined}"
+export COTRACKER_ROOT="${COTRACKER_ROOT:-${THIRDPARTY_ROOT}/co-tracker}"
+export INIT_CKPT="${INIT_CKPT:-${THIRDPARTY_ROOT}/track_on/checkpoint/litetracker_finetuned.pth}"
 
 export PYTHONUNBUFFERED=1
 [ -x "${PYTHON_BIN}" ] || {
@@ -57,7 +63,7 @@ export PYTHONUNBUFFERED=1
 [ -f "${CONFIG}" ] || { echo "config not found: ${CONFIG}"; exit 1; }
 
 RUN_NAME="${RUN_NAME:-fast_run_with2024_agg_repro}"
-OUT_DIR="${OUT_DIR:-${DATA_ROOT}/STIRprocessed/model_runs}"
+OUT_DIR="${OUT_DIR:-${RUNS_ROOT:-${DATA_ROOT}/STIRprocessed/model_runs}}"
 RUN_DIR="${OUT_DIR}/${RUN_NAME}"
 
 if compgen -G "${RUN_DIR}/student_*.pth" > /dev/null; then

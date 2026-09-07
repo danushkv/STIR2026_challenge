@@ -1,11 +1,12 @@
-# Effective configuration of fast_run_with2024_agg, with paths resolved for
-# this repository. Scientific/training values match the saved run config.
-pseudo_labels_dir: /mnt/cluster/datasets/STIRprocessed/pseudo_labels_with_2024_agg/
-stir_root: /mnt/cluster/datasets/STIRcombined/
-repo_root: /mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/co-tracker
-checkpoint: /mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/track_on/checkpoint/litetracker_finetuned.pth
+# Public, portable form of the effective fast_run_with2024_agg configuration.
+# Copy .env.example to .env before using a shell driver. Scientific/training
+# values match the saved run config; only machine-local paths are externalized.
+pseudo_labels_dir: ${oc.env:PSEUDO_LABELS_DIR,./data/pseudo_labels_with_2024_agg}
+stir_root: ${oc.env:STIR_TRAIN_ROOT,./data/STIRcombined}
+repo_root: ${oc.env:COTRACKER_ROOT,../co-tracker}
+checkpoint: ${oc.env:INIT_CKPT,./artifacts/litetracker_finetuned.pth}
 skip: 5
-out_dir: /mnt/cluster/datasets/STIRprocessed/model_runs
+out_dir: ${oc.env:RUNS_ROOT,./runs}
 model_resolution: [384, 512]
 
 lr: 2.0e-5

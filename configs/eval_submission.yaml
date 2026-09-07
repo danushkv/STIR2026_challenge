@@ -1,13 +1,13 @@
 # Evaluation matching the shipped 3D inference behavior: image-derived
 # right-view starts plus the measured geometric-consistency repair.
 tag: released_submission_protocol
-student_checkpoint: /mnt/cluster/datasets/STIRprocessed/model_runs/fast_run_with2024_agg/student_e44.pth
-val_stir_root: /mnt/cluster/datasets/STIRTest_2025
+student_checkpoint: ${oc.env:STUDENT_CHECKPOINT,./artifacts/student.pth}
+val_stir_root: ${oc.env:STIR_TEST_ROOT,./data/STIRTest_2025}
 test_patients: []
 eval_clip_ids: []
 max_eval_clips: 0
 iters_list: [4]
-out_dir: /mnt/cluster/datasets/STIRprocessed/eval_submission
+out_dir: ${oc.env:EVAL_ROOT,./runs/eval_submission}
 skip: 1
 val_max_frames: 0
 do_drift: true

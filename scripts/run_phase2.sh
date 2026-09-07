@@ -21,11 +21,14 @@
 # is the alternative, and what our other ablations used).
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/stir2026-nct}"
-DATA_ROOT="${DATA_ROOT:-/mnt/cluster/datasets}"
-VENV_ROOT="${VENV_ROOT:-/mnt/cluster/environments/venkateda}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env}"
+if [ -f "${ENV_FILE}" ]; then set -a; source "${ENV_FILE}"; set +a; fi
+DATA_ROOT="${DATA_ROOT:-${REPO_ROOT}/data}"
+PYTHON_BIN="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"
 # run_phase2.py pulls the IR-tattoo endpoints live through STIRLoader.
-export THIRDPARTY_ROOT="${THIRDPARTY_ROOT:-/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir}"
+export THIRDPARTY_ROOT="${THIRDPARTY_ROOT:-$(cd "${REPO_ROOT}/.." && pwd)}"
 export STIRLOADER_ROOT="${STIRLOADER_ROOT:-${THIRDPARTY_ROOT}/STIRLoader}"
 export LITETRACKER_ROOT="${LITETRACKER_ROOT:-${THIRDPARTY_ROOT}/lite-tracker-master}"
 export STIR_METRICS_ROOT="${STIR_METRICS_ROOT:-${THIRDPARTY_ROOT}/stir-challenge-2026-metrics}"
@@ -34,12 +37,10 @@ PROC="${DATA_ROOT}/STIRprocessed"
 OUT="${PSEUDO_LABELS_OUT:-${PROC}/pseudo_labels_with_2024_agg}"
 TEACHERS=(alltracker cotracker3 trackon2 trackon_r locotrack mft)
 
-# shellcheck disable=SC1091
-source "${VENV_ROOT}/trackon_env/bin/activate"
 cd "${REPO_ROOT}/src"
 
 echo "=== STIR original =============================================="
-python run_phase2.py \
+"${PYTHON_BIN}" run_phase2.py \
   --raw-tracks-root "${PROC}/STIROrig_tracks" \
   --stir-root       "${DATA_ROOT}/STIRDataset" \
   --teachers        "${TEACHERS[@]}" \
@@ -47,7 +48,7 @@ python run_phase2.py \
   --out-dir         "${OUT}"
 
 echo "=== STIR Challenge 2024 ========================================"
-python run_phase2.py \
+"${PYTHON_BIN}" run_phase2.py \
   --raw-tracks-root "${PROC}/STIRChallenge2024_tracks" \
   --stir-root       "${DATA_ROOT}/STIRcombined" \
   --teachers        "${TEACHERS[@]}" \

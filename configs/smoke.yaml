@@ -1,8 +1,8 @@
 # Real-data/GPU smoke test: exactly one optimizer step and one saved checkpoint.
-pseudo_labels_dir: /mnt/cluster/datasets/STIRprocessed/pseudo_labels_with_2024_agg/
-stir_root: /mnt/cluster/datasets/STIRcombined/
-repo_root: /mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/co-tracker
-checkpoint: /mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/track_on/checkpoint/litetracker_finetuned.pth
+pseudo_labels_dir: ${oc.env:PSEUDO_LABELS_DIR,./data/pseudo_labels_with_2024_agg}
+stir_root: ${oc.env:STIR_TRAIN_ROOT,./data/STIRcombined}
+repo_root: ${oc.env:COTRACKER_ROOT,../co-tracker}
+checkpoint: ${oc.env:INIT_CKPT,./artifacts/litetracker_finetuned.pth}
 skip: 5
 out_dir: /tmp/stir2026-smoke-runs
 model_resolution: [384, 512]

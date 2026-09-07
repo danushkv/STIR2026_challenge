@@ -1,6 +1,6 @@
 # STIR checkpoint ranking — LiteTracker streaming runtime
 
-Merged 13 checkpoint shard(s) from `/mnt/cluster/datasets/STIRprocessed/eval_sweep`. Paired clip-level bootstrap, 10000 resamples.
+Merged 13 checkpoint shards from the release evaluation sweep. Paired clip-level bootstrap, 10000 resamples.
 
 
 ## 2D — 32 clips, 234 points, 23 runs, 10000 clip-bootstrap resamples
@@ -167,4 +167,3 @@ Endpoint error vs clip length (agg_e44|i4): slope -0.0004 mm/frame, r=-0.02 over
 `gain if forced` > 0 means the visibility head is COSTING you AJ: setting `visibs=True` in the wrapper is legal and strictly better. An invisible rate under ~1% means the head is inert (AJ ≈ ATA), which is the safe failure mode.
 
 Lowest `cycle mean px` at equal endpoint error = the model that actually tracks, rather than one the nearest-neighbour match rescues. Read cycle error comparatively, not as an error budget.
-

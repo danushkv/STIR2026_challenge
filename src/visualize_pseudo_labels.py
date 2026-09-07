@@ -8,7 +8,7 @@ pseudo-label marks the point occluded (visibility < --vis-threshold).
 Usage:
     python visualize_pseudo_labels.py \\
         --pseudo-labels-dir data/pseudo_labels \\
-        --stir-root /mnt/cluster/datasets/STIRDataset \\
+        --stir-root <data>/STIRDataset \\
         --clip-id 1__left__seq05 \\
         --skip 5 \\
         --out-dir viz/

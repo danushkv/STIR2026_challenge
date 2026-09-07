@@ -12,10 +12,13 @@
 set -euo pipefail
 
 REPO_ROOT="${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env}"
+if [ -f "${ENV_FILE}" ]; then set -a; source "${ENV_FILE}"; set +a; fi
 export THIRDPARTY_ROOT="${THIRDPARTY_ROOT:-$(dirname "${REPO_ROOT}")}"
 export STIRLOADER_ROOT="${STIRLOADER_ROOT:-${THIRDPARTY_ROOT}/STIRLoader}"
 export LITETRACKER_ROOT="${LITETRACKER_ROOT:-${THIRDPARTY_ROOT}/lite-tracker-master}"
-DATA_ROOT="${DATA_ROOT:-/mnt/cluster/datasets}"
+DATA_ROOT="${DATA_ROOT:-${REPO_ROOT}/data}"
+PYTHON_BIN="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"
 
 CLIP="${CLIP:-0__left__seq00}"
 STIR_ROOT="${STIR_ROOT:-${DATA_ROOT}/STIRDataset}"
@@ -57,13 +60,13 @@ gif() {   # $1 in.mp4  $2 out.gif
 }
 
 echo "1/2  pseudo-labels -- the verifier's fused output, i.e. what the student is trained on"
-python3 "${REPO_ROOT}/src/visualize_pseudo_labels.py" \
+"${PYTHON_BIN}" "${REPO_ROOT}/src/visualize_pseudo_labels.py" \
     --pseudo-labels-dir "${PL_DIR}" --stir-root "${STIR_ROOT}" \
     --clip-id "${CLIP}" --skip 5 --out-dir "${WORK}/pl"
 gif "${WORK}/pl/${CLIP}.mp4" "${OUT}/pseudo_labels.gif"
 
 echo "2/2  student -- streaming inference on a ${GRID}px grid, the forward pass the container runs"
-python3 "${REPO_ROOT}/tools/render_student.py" \
+"${PYTHON_BIN}" "${REPO_ROOT}/tools/render_student.py" \
     --checkpoint "${CKPT}" --stir-root "${STIR_ROOT}" \
     --clip-id "${CLIP}" --out-dir "${WORK}/st" --iters 4 \
     --grid "${GRID}" --trail "${TRAIL}" --radius 3

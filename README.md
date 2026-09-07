@@ -37,6 +37,18 @@ differs. No new architecture is introduced — LiteTracker is the causal, stream
 formulation of CoTracker3-Online, so a fine-tuned CoTracker3-Online checkpoint
 loads into it unchanged.
 
+This repository is developed from
+[CoTracker3](https://github.com/facebookresearch/co-tracker): the student uses
+its online architecture and sequence loss, while
+[LiteTracker](https://arxiv.org/abs/2504.09904) provides the causal streaming
+runtime. Our contribution is the STIR data pipeline, multi-teacher verification
+and fusion, confidence-weighted fine-tuning, and reproducible evaluation around
+that foundation. No CoTracker3 source is vendored here.
+
+<p align="center">
+  <img src="assets/pipeline.svg" width="100%" alt="Six teacher trajectories are verified and fused into weighted pseudo-labels used to fine-tune one LiteTracker student for 2D and 3D streaming tracking."/>
+</p>
+
 <div align="center">
 <table>
 <tr>
@@ -50,9 +62,13 @@ loads into it unchanged.
 </table>
 </div>
 
-> The GIFs are not in the repository yet — build them with
-> `bash tools/make_gifs.sh` (needs ffmpeg, the venv and the dataset). See
-> [assets/README.md](assets/README.md).
+> Regenerate the pseudo-label and student GIFs with `bash tools/make_gifs.sh`
+> (needs ffmpeg, the venv, the checkpoint, and the dataset). See
+> [assets/README.md](assets/README.md) for the size-quality controls.
+
+A synchronized six-teacher comparison can be generated separately with
+`bash tools/make_teacher_gif.sh`. It uses the same clip and query points in all
+panels, so disagreement appears directly as separating coloured trajectories.
 
 ## Results
 
@@ -123,6 +139,12 @@ git clone https://github.com/mertkaraoglu/stir-challenge-2026-metrics     # offi
 # LiteTracker (arXiv:2504.09904) -- the streaming runtime; place at ./lite-tracker-master
 ```
 
+For source-exact reproduction, check out the revisions in
+[docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md) and apply both files under
+[`patches/`](patches/README.md). The track_on patch supplies the CoTracker
+checkpoint argument used by the teacher adapter and handles short online clips;
+the STIRLoader patch reduces decode memory without changing selected frames.
+
 | variable | default | needed for |
 |---|---|---|
 | `THIRDPARTY_ROOT` | parent of this repo | all of the below at once |
@@ -130,12 +152,15 @@ git clone https://github.com/mertkaraoglu/stir-challenge-2026-metrics     # offi
 | `LITETRACKER_ROOT` | `$THIRDPARTY_ROOT/lite-tracker-master` | any streaming evaluation |
 | `STIR_INFERENCE_ROOT` | `$THIRDPARTY_ROOT/stir-challenge-2026-inference` | 3D eval with the pixel matcher |
 | `STIR_METRICS_ROOT` | `$THIRDPARTY_ROOT/stir-challenge-2026-metrics` | AJ / ATA / OA |
-| `DATA_ROOT` | `/mnt/cluster/datasets` | dataset and artifact locations |
+| `DATA_ROOT` | `./data` | dataset and artifact locations |
 
 Only MFT needs a separate environment — it pins incompatible torch/timm versions.
 Since label generation is offline, teachers never run together: each writes its
 `.npz` output into a shared directory on its own schedule.
 [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md) has the details.
+
+Copy [`.env.example`](.env.example) to `.env` and set machine-local paths once.
+The shell drivers load it automatically, and `.env` is intentionally untracked.
 
 ## Data
 
@@ -172,15 +197,15 @@ Full detail, including every intermediate artifact directory:
 
 | checkpoint | needed for | where |
 |---|---|---|
-| **`student.pth`** (ours) | inference, evaluation | ⚠️ *release URL to be added — see below* |
+| **`student.pth`** (ours) | inference, evaluation | [Hugging Face release and checksum](docs/ARTIFACTS.md) |
 | `scaled_online.pth` | training from stock CoTracker3 | [HuggingFace `facebook/cotracker3`](https://huggingface.co/facebook/cotracker3/resolve/main/scaled_online.pth) |
 | `litetracker_finetuned.pth` | reproducing our exact run (it is the initialisation) | STIR 2025 winning entry |
 | `alltracker.pth`, `locotrack_base.ckpt`, `track_on_r.pt`, `trackon2_dinov3_checkpoint.pt` | **label generation only** | the respective upstream releases; place in `track_on/checkpoint/` |
 
 Only `student.pth` is needed to run or evaluate the model. Pass its downloaded
 path as `student_checkpoint=...`; the teacher checkpoints are needed only if
-you regenerate pseudo-labels from scratch. Challenge submission packaging is
-maintained separately and is intentionally not tracked in this repository.
+you regenerate pseudo-labels from scratch. The STIROrig teacher trajectories can also be downloaded instead of
+rerunning six models; see [docs/ARTIFACTS.md](docs/ARTIFACTS.md).
 
 > **Licence:** the weights are **CC BY-NC 4.0**, not MIT. They descend from
 > CoTracker3 / LiteTracker, which are non-commercial. The MIT licence covers the
@@ -211,6 +236,11 @@ with no IR segmentation, so unequal coverage is expected, not an error —
 ```bash
 python src/sanity_check.py <raw_tracks_root>
 ```
+
+If you are publishing or consuming the cached `.npz` tracks, their schema,
+expected tree, and direct Hugging Face download command are documented in
+[docs/ARTIFACTS.md](docs/ARTIFACTS.md). The collection command above remains
+the authoritative way to regenerate them.
 
 ### 2. Verify and fuse into pseudo-labels
 
@@ -281,7 +311,6 @@ src/
   # pseudo-label generation
   teachers.py              the six teacher adapters, each importing its own deps lazily
   collect_tracks.py        phase 1 CLI: run one teacher over one collection
-  collect_extra_points.py  densification: extra query points, tracked by one teacher
   verifier.py              THE CORE. endpoint + cycle + agreement -> per-frame trust
   pseudo_label.py          per-clip fusion: select or aggregate
   run_phase2.py            phase 2 CLI
@@ -296,9 +325,7 @@ src/
 
   # evaluation, all under the streaming runtime the challenge scores
   student_lt_wrapper.py    load a checkpoint into LiteTracker (no conversion needed)
-  eval_common.py           metric definitions shared by the three evaluators
-  eval_2d.py               2D endpoint accuracy
-  eval_3d.py               3D accuracy, in millimetres, by triangulation
+  eval_common.py           shared endpoint and triangulation metric definitions
   eval_sweep.py            2D + 3D + cycle drift + visibility, one pass, one checkpoint
   compare_ckpts.py         paired clip-level bootstrap over eval_sweep shards
   latency_from_preds.py    p95 frame latency from a container's preds.json
@@ -310,8 +337,10 @@ src/
 
 scripts/      one shell driver per stage; see scripts/README.md
 configs/      exact released, smoke, and evaluation protocol configurations
+experiments/  exploratory code not used by the released model
+huggingface/  upload-ready model and dataset card templates
 tools/        render the student to video, build the README GIFs
-patches/      the STIRLoader patch, with its base commit
+patches/      required STIRLoader and track_on compatibility patches
 docs/         reproduction guide, run ledger, measured results, caveats
 ```
 
@@ -322,7 +351,8 @@ docs/         reproduction guide, run ledger, measured results, caveats
 | [docs/DATA.md](docs/DATA.md) | dataset roots, clip ids, every artifact directory |
 | [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md) | the two venvs, the clones, the teacher checkpoints |
 | [docs/CAVEATS.md](docs/CAVEATS.md) | **where the code and the report disagree — read before quoting a number** |
-| [docs/CHANGES.md](docs/CHANGES.md) | how this repository was assembled from the working tree |
+| [docs/ARTIFACTS.md](docs/ARTIFACTS.md) | Hugging Face downloads, checksums, and `.npz` schema |
+| [docs/results/](docs/results/) | the full ranking tables, original and reproduction |
 
 Before opening a PR — or after any rename, move or delete:
 
@@ -335,12 +365,11 @@ module which no longer exists, that every git-tracked file is on disk, that
 every relative Markdown link points somewhere real, and that all shell and
 Python parses. It exists because a rename pass over `src/` once left stale
 references in `tools/`, `scripts/` and the docs.
-| [docs/results/](docs/results/) | the full ranking tables, original and reproduction |
 
-`src/` is flat on purpose: the modules import each other by bare name, exactly
-as they did when the results were produced. [docs/CHANGES.md](docs/CHANGES.md)
-records every difference between this repository and that working tree — what
-was renamed, what was deleted, and how it was verified.
+`src/` is flat on purpose: the release modules import each other by bare name,
+exactly as they did when the results were produced. Exploratory densification
+code is retained separately under `experiments/` so the main training path stays
+small without erasing provenance.
 
 ## Citing
 
@@ -381,8 +410,25 @@ LiteTracker). Dataset: its own terms. Details and every dependency's licence:
 
 ## Acknowledgements
 
-Built on [CoTracker3](https://github.com/facebookresearch/co-tracker),
-LiteTracker, [track_on](https://github.com/gorkaydemir/track_on),
-[MFT](https://github.com/serycjon/MFT) and
-[STIRLoader](https://github.com/athaddius/STIRLoader). Thanks to the STIR
-challenge organisers for the dataset and the evaluation harness.
+We gratefully thank the authors and maintainers of the open research projects
+that made this work possible:
+
+- [CoTracker3](https://github.com/facebookresearch/co-tracker), on which the
+  student architecture and training objective are based, and
+  [LiteTracker](https://arxiv.org/abs/2504.09904), which provides the streaming
+  runtime.
+- [Track-On, Track-On2, and Track-On-R](https://github.com/gorkaydemir/track_on),
+  [AllTracker](https://github.com/aharley/alltracker),
+  [LocoTrack](https://github.com/cvlab-kaist/locotrack), and
+  [MFT](https://github.com/serycjon/MFT), whose models and adapters supplied the
+  teacher trajectories used by the verifier.
+- [STIRLoader](https://github.com/athaddius/STIRLoader) and
+  [STIRMetrics](https://github.com/athaddius/STIRMetrics), which provide the
+  dataset-loading and evaluation foundations.
+- The STIR Challenge organisers and dataset contributors for making the data,
+  benchmark, and evaluation framework available to the community.
+
+Additional acknowledgements to complete before release:
+
+**Funding:**
+This work is partly supported by the Federal Ministry of Research, Technology and Space in DAAD project 57616814 (SECAI, School of Embedded Composite AI, https://secai.org/). This work is funded by the German Research Foundation (DFG, Deutsche Forschungsgemeinschaft) as part of Reinhart Koselleck-project – Project ID 560101272.

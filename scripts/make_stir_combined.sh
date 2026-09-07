@@ -11,7 +11,11 @@
 #
 #   bash make_stir_combined.sh
 set -euo pipefail
-DATA_ROOT="${DATA_ROOT:-/mnt/cluster/datasets}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env}"
+if [ -f "${ENV_FILE}" ]; then set -a; source "${ENV_FILE}"; set +a; fi
+DATA_ROOT="${DATA_ROOT:-${REPO_ROOT}/data}"
 SRC_STIR="${DATA_ROOT}/STIRDataset"
 SRC_2024="${DATA_ROOT}/STIRChallenge_2024"
 DST="${DATA_ROOT}/STIRcombined"

@@ -2,15 +2,17 @@
 # Re-fuse one cached six-teacher clip and compare it with the released label.
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/stir2026-nct}"
-THIRDPARTY_ROOT="${THIRDPARTY_ROOT:-/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir}"
-DATA_ROOT="${DATA_ROOT:-/mnt/cluster/datasets}"
-VENV_ROOT="${VENV_ROOT:-/mnt/cluster/environments/venkateda}"
-PYTHON_BIN="${PYTHON_BIN:-${VENV_ROOT}/trackon_env/bin/python}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env}"
+if [ -f "${ENV_FILE}" ]; then set -a; source "${ENV_FILE}"; set +a; fi
+THIRDPARTY_ROOT="${THIRDPARTY_ROOT:-$(cd "${REPO_ROOT}/.." && pwd)}"
+DATA_ROOT="${DATA_ROOT:-${REPO_ROOT}/data}"
+PYTHON_BIN="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"
 SMOKE_CLIP="${SMOKE_CLIP:-0__left__seq00}"
 RAW_TRACKS="${RAW_TRACKS:-${DATA_ROOT}/STIRprocessed/STIROrig_tracks}"
 STIR_ROOT="${STIR_ROOT:-${DATA_ROOT}/STIRDataset}"
-REFERENCE_ROOT="${REFERENCE_ROOT:-${DATA_ROOT}/STIRprocessed/pseudo_labels_with_2024_agg}"
+REFERENCE_ROOT="${REFERENCE_ROOT:-${PSEUDO_LABELS_DIR:-${DATA_ROOT}/STIRprocessed/pseudo_labels_with_2024_agg}}"
 export THIRDPARTY_ROOT
 export STIRLOADER_ROOT="${STIRLOADER_ROOT:-${THIRDPARTY_ROOT}/STIRLoader}"
 

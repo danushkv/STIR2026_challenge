@@ -15,11 +15,11 @@ environment.
 | `trackon_env` | everything except MFT: the five track_on-based teachers, **all training**, all evaluation, the sweep, the analysis |
 | `mft_env` | `collect_tracks.py --teacher mft` only |
 
-On the cluster these live at `${VENV_ROOT}` = `/mnt/cluster/environments/venkateda`:
+Set the two interpreter paths in `.env`:
 
 ```bash
-source /mnt/cluster/environments/venkateda/trackon_env/bin/activate
-source /mnt/cluster/environments/venkateda/mft_env/bin/activate
+PYTHON_BIN=/absolute/path/to/trackon_env/bin/python
+MFT_PYTHON=/absolute/path/to/mft_env/bin/python
 ```
 
 `trackon_env` needs, beyond track_on's own requirements: `omegaconf`, `wandb`,
@@ -31,27 +31,37 @@ source /mnt/cluster/environments/venkateda/mft_env/bin/activate
 > nodes but not on every workstation — where it is missing, the venv is dead and
 > `source .../activate` leaves you with no `python` on `PATH` at all, rather
 > than an error. Check with
-> `ls -l ${VENV_ROOT}/trackon_env/bin/python` before blaming the code.
-> No `requirements.txt` is checked in because the exact resolved versions were
-> never frozen; freeze them with `uv pip freeze` from a node where the venv
-> works, and commit the result.
+> `ls -l "$PYTHON_BIN"` before blaming the code. The checked-in
+> `requirements.txt` is the exact freeze recovered for the released training
+> environment. MFT remains a separate upstream-managed environment.
 
 ## Upstream repositories
 
-All are **cloned, not vendored**. `THIRDPARTY_ROOT` (default
-`/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir`) is the directory that
-holds them.
+All are **cloned, not vendored**. `THIRDPARTY_ROOT` defaults to the parent of
+this repository and can be set in `.env`.
 
 | directory | repository | why it is needed |
 |---|---|---|
 | `track_on/` | `github.com/gorkaydemir/track_on` | five of the six teachers. `ensemble/` ships inference wrappers for CoTracker3 / LocoTrack / AllTracker; `model/trackon_predictor.py` is Track-On2 / Track-On-R itself. |
 | `MFT/` | `github.com/serycjon/MFT` | the sixth teacher. Ships its own RAFT checkpoint, so nothing to train. |
 | `co-tracker/` | `github.com/facebookresearch/co-tracker` | **training only.** `train.py` builds the real `CoTrackerThreeOnline` module and calls upstream's own `sequence_loss` — not a reimplementation. |
-| `lite-tracker-master/` | LiteTracker | the streaming runtime (its `src/lite_tracker.py`) that `eval_2d.py`, `eval_3d.py`, `eval_sweep.py` and the submission wrappers load the student into. Also ships `model/scaled_online.pth`, Meta's stock CoTracker3-Online weights. |
+| `lite-tracker-master/` | LiteTracker | the streaming runtime (its `src/lite_tracker.py`) used by `eval_sweep.py`. Also ships `model/scaled_online.pth`, Meta's stock CoTracker3-Online weights. |
 | `STIRLoader/` | `github.com/athaddius/STIRLoader` | decodes STIR clips and reads the IR-tattoo start/end segmentation. **Must be the patched clone — see below.** Located at import time by `collect_tracks._import_stirloader`. |
 | `STIRMetrics/` | `github.com/athaddius/STIRMetrics` | reference for the 2D/3D metric conventions. |
 | `stir-challenge-2026-inference/` | challenge organisers | the container the submission is built on top of. |
 | `stir-challenge-2026-metrics/` | challenge organisers | the official AJ / ATA / OA formulas, and the latency definition `latency_from_preds.py` mirrors. |
+
+Checked-out revisions in the release environment:
+
+| checkout | revision |
+|---|---|
+| co-tracker | `82e02e8029753ad4ef13cf06be7f4fc5facdda4d` |
+| track_on | `7e838e84ae6accf02294752da9e9fe25ec5835c4` + [`track-on-cotracker-compat.patch`](../patches/track-on-cotracker-compat.patch) |
+| MFT | `01a59dbec98b136d4800fb32e8b985703717ed8a` |
+| STIRLoader | `7e7f87c4f2c2aac525207f499ff18221f7936822` + [`stirloader-streaming-skip.patch`](../patches/stirloader-streaming-skip.patch) |
+| stir-challenge-2026-inference | `f06a2ef45aede902eacdff1d1243372d69b15ab1` |
+| stir-challenge-2026-metrics | `1bea25fe1f0e0983b4acb61e8cc1e87b359f99d8` |
+| LiteTracker | TODO: the local archive had no Git metadata; add its release URL or commit before claiming a source-exact reconstruction |
 
 ## Checkpoints that must exist before phase 1
 

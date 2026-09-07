@@ -58,8 +58,8 @@ def grid_queries(H, W, spacing, margin=24):
 
 
 def stream_and_record(model, frames, start_pts, device, dtype):
-    """Same forward pass as eval_2d.track_clip_streaming, but keeps
-    every frame's coords instead of only the last. Returns [N,T,2] native px.
+    """Same streaming forward pass as eval_sweep.stream_track, but keeps every
+    frame's coordinates instead of only the last. Returns [N,T,2] native px.
     """
     model.init_video_online_processing()
     q = torch.from_numpy(np.asarray(start_pts, np.float32)).unsqueeze(0).to(device)

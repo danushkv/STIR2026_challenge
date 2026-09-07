@@ -32,11 +32,10 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CODE_DIRS = ["src", "tools"]
+CODE_DIRS = ["src", "tools", "experiments"]
 TEXT_SUFFIXES = {".py", ".sh", ".yaml", ".yml", ".md", ".cff", ".txt"}
 SKIP_DIRS = {".git", "__pycache__", ".venv", "assets"}
-# docs/CHANGES.md deliberately names everything that was removed.
-ALLOW_STALE = {"docs/CHANGES.md"}
+ALLOW_STALE: set[str] = set()
 
 # Filenames that live in the CLONED upstream repos, not here. We talk about them
 # constantly (the challenge harness, STIRMetrics, track_on), so they are not

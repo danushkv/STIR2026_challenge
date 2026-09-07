@@ -41,6 +41,6 @@ the README.
 
 ## If you need a permissively licensed checkpoint
 
-Retrain from a permissive initialisation. `scripts/train_agg.sh` takes
+Retrain from a permissive initialisation. `scripts/train.sh` takes
 `checkpoint=` — point it at weights whose licence suits you. Everything else in
 the pipeline (verifier, pseudo-labels, training loop) is MIT.

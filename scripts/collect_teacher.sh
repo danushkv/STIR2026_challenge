@@ -34,12 +34,15 @@ COLLECTION="${2:-orig}"
 # REPO_ROOT       : this repository (contains src/ and scripts/)
 # THIRDPARTY_ROOT : where the cloned upstream repos live -- track_on/, MFT/,
 #                   co-tracker/, lite-tracker-master/. See docs/ENVIRONMENTS.md.
-REPO_ROOT="${REPO_ROOT:-/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/stir2026-nct}"
-export THIRDPARTY_ROOT="${THIRDPARTY_ROOT:-/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env}"
+if [ -f "${ENV_FILE}" ]; then set -a; source "${ENV_FILE}"; set +a; fi
+export THIRDPARTY_ROOT="${THIRDPARTY_ROOT:-$(cd "${REPO_ROOT}/.." && pwd)}"
 export STIRLOADER_ROOT="${STIRLOADER_ROOT:-${THIRDPARTY_ROOT}/STIRLoader}"
 export LITETRACKER_ROOT="${LITETRACKER_ROOT:-${THIRDPARTY_ROOT}/lite-tracker-master}"
 export STIR_METRICS_ROOT="${STIR_METRICS_ROOT:-${THIRDPARTY_ROOT}/stir-challenge-2026-metrics}"
-DATA_ROOT="${DATA_ROOT:-/mnt/cluster/datasets}"
+DATA_ROOT="${DATA_ROOT:-${REPO_ROOT}/data}"
 
 # The 2024 clips are read through the STIRcombined symlink farm rather than
 # STIRChallenge_2024 directly, because the patient folder there is named `02`
@@ -59,29 +62,27 @@ esac
 
 # --- environment + teacher-specific checkpoint ------------------------------
 # The track_on teachers all share one venv; MFT has its own.
-VENV_ROOT="${VENV_ROOT:-/mnt/cluster/environments/venkateda}"
 CKPT_DIR="${THIRDPARTY_ROOT}/track_on/checkpoint"
 EXTRA=()
 case "${TEACHER}" in
-  cotracker3)  VENV="${VENV_ROOT}/trackon_env"; REPO="${THIRDPARTY_ROOT}/track_on"
+  cotracker3)  TEACHER_PYTHON="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"; REPO="${THIRDPARTY_ROOT}/track_on"
                ;;                                        # checkpoint auto-downloaded via torch.hub
-  alltracker)  VENV="${VENV_ROOT}/trackon_env"; REPO="${THIRDPARTY_ROOT}/track_on"
+  alltracker)  TEACHER_PYTHON="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"; REPO="${THIRDPARTY_ROOT}/track_on"
                EXTRA=(--checkpoint "${CKPT_DIR}/alltracker.pth") ;;
-  locotrack)   VENV="${VENV_ROOT}/trackon_env"; REPO="${THIRDPARTY_ROOT}/track_on"
+  locotrack)   TEACHER_PYTHON="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"; REPO="${THIRDPARTY_ROOT}/track_on"
                EXTRA=(--checkpoint "${CKPT_DIR}/locotrack_base.ckpt") ;;
-  trackon2)    VENV="${VENV_ROOT}/trackon_env"; REPO="${THIRDPARTY_ROOT}/track_on"
+  trackon2)    TEACHER_PYTHON="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"; REPO="${THIRDPARTY_ROOT}/track_on"
                EXTRA=(--checkpoint "${CKPT_DIR}/trackon2_dinov3_checkpoint.pt") ;;
-  trackon_r)   VENV="${VENV_ROOT}/trackon_env"; REPO="${THIRDPARTY_ROOT}/track_on"
+  trackon_r)   TEACHER_PYTHON="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"; REPO="${THIRDPARTY_ROOT}/track_on"
                EXTRA=(--checkpoint "${CKPT_DIR}/track_on_r.pt") ;;
-  mft)         VENV="${VENV_ROOT}/mft_env";     REPO="${THIRDPARTY_ROOT}/MFT" ;;
+  mft)         TEACHER_PYTHON="${MFT_PYTHON:-${THIRDPARTY_ROOT}/MFT/.venv/bin/python}"; REPO="${THIRDPARTY_ROOT}/MFT" ;;
   *) echo "unknown teacher: ${TEACHER}"; exit 1 ;;
 esac
 
 OUT_DIR="${RAW_TRACKS_ROOT}/${TEACHER}"
 mkdir -p "${OUT_DIR}"
 
-# shellcheck disable=SC1091
-source "${VENV}/bin/activate"
+[ -x "${TEACHER_PYTHON}" ] || { echo "Python is not executable: ${TEACHER_PYTHON}"; exit 1; }
 cd "${REPO_ROOT}/src"
 
 echo "teacher=${TEACHER}  collection=${COLLECTION}"
@@ -91,7 +92,7 @@ echo "out_dir=${OUT_DIR}"
 # --skip 5 is NOT optional: it must match the skip used for training
 # (train.yaml: skip: 5). Changing it changes the inter-frame motion the
 # pseudo-labels describe, and the trainer would then index the wrong frames.
-python collect_tracks.py \
+"${TEACHER_PYTHON}" collect_tracks.py \
   --teacher "${TEACHER}" \
   --repo-root "${REPO}" \
   --stir-root "${STIR_ROOT}" \

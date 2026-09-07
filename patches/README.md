@@ -1,11 +1,12 @@
 # patches/
 
-One patch, against [STIRLoader](https://github.com/athaddius/STIRLoader).
+Small compatibility patches against upstream projects.
 
 | file | what |
 |---|---|
 | `stirloader-streaming-skip.patch` | apply the frame stride while streaming from ffmpeg, instead of decoding the whole clip and then slicing |
 | `stirloader-base-commit.txt` | the commit it applies to: `7e7f87c4f2c2aac525207f499ff18221f7936822` |
+| `track-on-cotracker-compat.patch` | optional checkpoint loading and short-clip support against track_on commit `7e838e84ae6accf02294752da9e9fe25ec5835c4` |
 
 ```bash
 git clone https://github.com/athaddius/STIRLoader && cd STIRLoader
@@ -13,6 +14,18 @@ git checkout 7e7f87c
 git apply /path/to/this/repo/patches/stirloader-streaming-skip.patch
 pip install --no-deps -e .
 ```
+
+The track_on patch is required by `src/teachers.py`:
+
+```bash
+git clone https://github.com/gorkaydemir/track_on && cd track_on
+git checkout 7e838e84ae6accf02294752da9e9fe25ec5835c4
+git apply /path/to/this/repo/patches/track-on-cotracker-compat.patch
+```
+
+It deliberately omits the machine-local cache-directory edits present in the
+original checkout; cache locations do not affect predictions and belong in
+environment configuration.
 
 ## Is it needed?
 

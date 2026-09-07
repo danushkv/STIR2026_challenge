@@ -2,11 +2,13 @@
 # Validate the current cluster inputs before any GPU time is spent.
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir/stir2026-nct}"
-THIRDPARTY_ROOT="${THIRDPARTY_ROOT:-/mnt/nct-zfs/TCO-Test/venkateda/miccai_challenges/stir}"
-DATA_ROOT="${DATA_ROOT:-/mnt/cluster/datasets}"
-VENV_ROOT="${VENV_ROOT:-/mnt/cluster/environments/venkateda}"
-PYTHON_BIN="${PYTHON_BIN:-${VENV_ROOT}/trackon_env/bin/python}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env}"
+if [ -f "${ENV_FILE}" ]; then set -a; source "${ENV_FILE}"; set +a; fi
+THIRDPARTY_ROOT="${THIRDPARTY_ROOT:-$(cd "${REPO_ROOT}/.." && pwd)}"
+DATA_ROOT="${DATA_ROOT:-${REPO_ROOT}/data}"
+PYTHON_BIN="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"
 STIRLOADER_ROOT="${STIRLOADER_ROOT:-${THIRDPARTY_ROOT}/STIRLoader}"
 LITETRACKER_ROOT="${LITETRACKER_ROOT:-${THIRDPARTY_ROOT}/lite-tracker-master}"
 STIR_INFERENCE_ROOT="${STIR_INFERENCE_ROOT:-${THIRDPARTY_ROOT}/stir-challenge-2026-inference}"
@@ -15,7 +17,7 @@ PSEUDO_LABELS="${PSEUDO_LABELS:-${DATA_ROOT}/STIRprocessed/pseudo_labels_with_20
 STIR_ROOT="${STIR_ROOT:-${DATA_ROOT}/STIRcombined}"
 TEST_ROOT="${TEST_ROOT:-${DATA_ROOT}/STIRTest_2025}"
 INIT_CKPT="${INIT_CKPT:-${THIRDPARTY_ROOT}/track_on/checkpoint/litetracker_finetuned.pth}"
-RELEASED_CKPT="${RELEASED_CKPT:-${DATA_ROOT}/STIRprocessed/model_runs/fast_run_with2024_agg/student_e44.pth}"
+RELEASED_CKPT="${STUDENT_CHECKPOINT:-${DATA_ROOT}/STIRprocessed/model_runs/fast_run_with2024_agg/student_e44.pth}"
 RAW_TRACKS="${RAW_TRACKS:-${DATA_ROOT}/STIRprocessed/STIROrig_tracks}"
 SMOKE_CLIP="${SMOKE_CLIP:-0__left__seq00}"
 EVAL_SMOKE_CLIP="${EVAL_SMOKE_CLIP:-01__left__seq03}"
