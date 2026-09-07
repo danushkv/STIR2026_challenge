@@ -9,7 +9,7 @@ Example:
     python tools/render_teachers.py \
         --raw-tracks-root data/STIROrig_tracks \
         --stir-root data/STIRDataset \
-        --clip-id 4__left__seq00 \
+        --clip-id 22__left__seq34 \
         --out assets/teacher_comparison.mp4
 
 Every panel shows the same video frame and query points. Point colours are held
@@ -58,6 +58,12 @@ ACCENTS = {
     "trackon2": (83, 193, 241),
     "trackon_r": (126, 126, 255),
 }
+
+# OpenCV colours are BGR. Cool slate framing separates the interface from the
+# warm tissue footage instead of extending its brown palette into the canvas.
+CANVAS_BG = (42, 26, 16)
+HEADER_BG = (55, 37, 24)
+PANEL_BORDER = (122, 91, 68)
 
 
 def track_path(root: Path, teacher: str, clip_id: str) -> Path:
@@ -161,7 +167,7 @@ def render(frames: np.ndarray, tracks, teachers: tuple[str, ...], out_path: Path
 
     try:
         for t in range(frame_count):
-            canvas = np.full((canvas_h, canvas_w, 3), (20, 27, 40), np.uint8)
+            canvas = np.full((canvas_h, canvas_w, 3), CANVAS_BG, np.uint8)
             for panel_index, teacher in enumerate(teachers):
                 row, col = divmod(panel_index, 3)
                 x = outer + col * (panel_width + gap)
@@ -173,7 +179,7 @@ def render(frames: np.ndarray, tracks, teachers: tuple[str, ...], out_path: Path
                 )
                 accent = ACCENTS[teacher]
                 cv2.rectangle(canvas, (x, y), (x + panel_width, y + header_h),
-                              (31, 41, 57), -1)
+                              HEADER_BG, -1)
                 cv2.rectangle(canvas, (x, y), (x + 6, y + header_h), accent, -1)
                 cv2.putText(canvas, DISPLAY_NAMES.get(teacher, teacher),
                             (x + 19, y + 28), cv2.FONT_HERSHEY_DUPLEX,
@@ -187,7 +193,7 @@ def render(frames: np.ndarray, tracks, teachers: tuple[str, ...], out_path: Path
                             (190, 199, 213), 1, cv2.LINE_AA)
                 canvas[y + header_h:y + panel_h, x:x + panel_width] = panel
                 cv2.rectangle(canvas, (x, y), (x + panel_width, y + panel_h),
-                              (70, 82, 101), 1)
+                              PANEL_BORDER, 1)
 
             footer_y = canvas_h - footer_h
             caption = (f"{clip_id}   |   same query points   |   frame {t + 1}/{frame_count}"
@@ -208,7 +214,7 @@ def main() -> None:
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--raw-tracks-root", required=True)
     parser.add_argument("--stir-root", required=True)
-    parser.add_argument("--clip-id", default="4__left__seq00")
+    parser.add_argument("--clip-id", default="22__left__seq34")
     parser.add_argument("--out", required=True)
     parser.add_argument("--teachers", nargs=6, default=DEFAULT_TEACHERS)
     parser.add_argument("--skip", type=int, default=5)

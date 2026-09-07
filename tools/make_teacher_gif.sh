@@ -10,7 +10,7 @@ PYTHON_BIN="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"
 RAW_TRACKS="${RAW_TRACKS:-${DATA_ROOT}/STIRprocessed/STIROrig_tracks}"
 STIR_ROOT="${STIR_ROOT:-${DATA_ROOT}/STIRDataset}"
 
-CLIP="${CLIP:-4__left__seq00}"
+CLIP="${CLIP:-22__left__seq34}"
 OUT="${OUT:-${REPO_ROOT}/assets/teacher_comparison.gif}"
 WIDTH="${WIDTH:-900}"
 FPS="${FPS:-7}"

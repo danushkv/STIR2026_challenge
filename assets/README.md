@@ -16,8 +16,8 @@ Build the synchronized six-teacher comparison with:
 bash tools/make_teacher_gif.sh
 ```
 
-Its default `4__left__seq00` has all six teachers, 11 shared query points, and
-39 retained frames. Override it with `CLIP=...`; the selected clip must exist
+Its default `22__left__seq34` has all six teachers, 15 shared query points, and
+40 retained frames. Override it with `CLIP=...`; the selected clip must exist
 under all six teacher directories.
 
 To select a clip objectively rather than guessing, rank the common clips by
