@@ -8,10 +8,10 @@ The released **checkpoint is not MIT**, and that distinction matters.
 
 ## The checkpoint
 
-`student.pth` is a fine-tune of CoTracker3-Online weights, reached through the
-STIR-2025 `litetracker_finetuned.pth` initialisation. CoTracker3 and LiteTracker
-are released under **CC BY-NC 4.0**, so the derived weights inherit that
-licence: free to use, share and adapt **with attribution, for non-commercial
+`student.pth` is a fine-tune of Meta's stock CoTracker3-Online weights.
+CoTracker3 and LiteTracker are released under **CC BY-NC 4.0**, so the derived
+weights inherit that licence: free to use, share and adapt **with attribution,
+for non-commercial
 purposes only**. Nothing in this repository can relicense them, and the MIT
 grant above does not extend to them.
 

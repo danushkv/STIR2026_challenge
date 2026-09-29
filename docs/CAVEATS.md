@@ -52,17 +52,17 @@ reproduce the released checkpoint. It also matters for the held-out claim — th
 `trial_e45` (the STIROrig-only lineage) is kept in the manifest despite ranking
 mid-table. See [DATA.md](DATA.md) and [RUNS.md](RUNS.md).
 
-## 3. The shipped model is initialised from the 2025 winning checkpoint
+## 3. The released run starts from stock CoTracker3, despite its saved filename
 
-`fast_run_with2024_agg` started from `litetracker_finetuned.pth`, i.e. the
-`peng_baseline` weights — not from stock CoTracker3. Table 1 of the report marks
-`peng` only on some rows and not on the `agg` ones. Six of the nine trained
-models in the manifest started from that checkpoint; only `trial_e45`,
-`extra_e40` and `extra_thr_e{30,42}` started from `scaled_online.pth`.
+The archived `fast_run_with2024_agg/config.yaml` records the legacy local path
+`../track_on/checkpoint/litetracker_finetuned.pth`. That filename led to an
+incorrect provenance inference in an earlier version of this repository. The
+file used to initialize the released run had been changed to the stock
+CoTracker3-Online initialization; it was not the STIR-2025 winning checkpoint.
 
-This matters for the claim "the distillation beats the 2025 winning checkpoint
-in 3D": the comparison is a fine-tune of that checkpoint against the checkpoint
-itself, which is a fair claim about the fine-tuning, but not a from-scratch one.
+The public configuration therefore uses Meta's official `scaled_online.pth`.
+The separately evaluated `peng_baseline` and the ablations identified in
+[RUNS.md](RUNS.md) still refer to the STIR-2025 checkpoint.
 
 ## 4. `extra_e40` trained on the wrong label set
 
@@ -95,9 +95,10 @@ Reproducing a `select` run means regenerating the labels.
 
 Every 3D number from `eval_sweep.py` takes the right-view start points from
 STIRLoader's `getsegsstereo`, which contour-matches the tattoo segmentation in
-both views. The 2026 harness gives left-view queries only. The shipped container
-recovers the right-view points from pixels by NCC along the epipolar row, which
-costs 0.052 acc_avg; the geometric consistency check recovers 0.017 of that.
+both views. The inference interface gives left-view queries only. The deployable
+runtime recovers the right-view points from pixels by NCC along the epipolar
+row, which costs 0.052 acc_avg; the geometric consistency check recovers 0.017
+of that.
 
 Expect **0.7031**, not 0.7383. The exact measurable submission settings are in
 [`../configs/eval_submission.yaml`](../configs/eval_submission.yaml).

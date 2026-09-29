@@ -2,7 +2,7 @@
 pseudo_labels_dir: ${oc.env:PSEUDO_LABELS_DIR,./data/pseudo_labels_with_2024_agg}
 stir_root: ${oc.env:STIR_TRAIN_ROOT,./data/STIRcombined}
 repo_root: ${oc.env:COTRACKER_ROOT,../co-tracker}
-checkpoint: ${oc.env:INIT_CKPT,./artifacts/litetracker_finetuned.pth}
+checkpoint: ${oc.env:INIT_CKPT,./artifacts/scaled_online.pth}
 skip: 5
 out_dir: /tmp/stir2026-smoke-runs
 model_resolution: [384, 512]

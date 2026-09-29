@@ -12,16 +12,17 @@ PYTHON_BIN="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"
 STIRLOADER_ROOT="${STIRLOADER_ROOT:-${THIRDPARTY_ROOT}/STIRLoader}"
 LITETRACKER_ROOT="${LITETRACKER_ROOT:-${THIRDPARTY_ROOT}/lite-tracker-master}"
 STIR_INFERENCE_ROOT="${STIR_INFERENCE_ROOT:-${THIRDPARTY_ROOT}/stir-challenge-2026-inference}"
+COTRACKER_ROOT="${COTRACKER_ROOT:-${THIRDPARTY_ROOT}/co-tracker}"
 
 PSEUDO_LABELS="${PSEUDO_LABELS:-${DATA_ROOT}/STIRprocessed/pseudo_labels_with_2024_agg}"
 STIR_ROOT="${STIR_ROOT:-${DATA_ROOT}/STIRcombined}"
 TEST_ROOT="${TEST_ROOT:-${DATA_ROOT}/STIRTest_2025}"
-INIT_CKPT="${INIT_CKPT:-${THIRDPARTY_ROOT}/track_on/checkpoint/litetracker_finetuned.pth}"
+INIT_CKPT="${INIT_CKPT:-${COTRACKER_ROOT}/checkpoints/scaled_online.pth}"
 RELEASED_CKPT="${STUDENT_CHECKPOINT:-${DATA_ROOT}/STIRprocessed/model_runs/fast_run_with2024_agg/student_e44.pth}"
 RAW_TRACKS="${RAW_TRACKS:-${DATA_ROOT}/STIRprocessed/STIROrig_tracks}"
 SMOKE_CLIP="${SMOKE_CLIP:-0__left__seq00}"
 EVAL_SMOKE_CLIP="${EVAL_SMOKE_CLIP:-01__left__seq03}"
-EXPECTED_INIT_SHA256="${EXPECTED_INIT_SHA256:-8c2082b8c15756913f8a1ad6b6bb1fd9b8c4790e8022450677f6ac19be816e0a}"
+EXPECTED_INIT_SHA256="${EXPECTED_INIT_SHA256:-205d34789f19699d64b22cf93f9b697f15f28d4025240e31532e504109837218}"
 EXPECTED_RELEASED_SHA256="${EXPECTED_RELEASED_SHA256:-3b964f18793bab959d1537aa58b0411bb8454e2df5f30bf6d66039a215c8455c}"
 
 failures=0
@@ -40,11 +41,11 @@ command -v ffmpeg >/dev/null 2>&1 && ok "ffmpeg" || bad "ffmpeg not found"
 command -v nvidia-smi >/dev/null 2>&1 && ok "nvidia-smi" || bad "nvidia-smi not found"
 
 echo "=== code and checkpoints ==="
-need_file "${THIRDPARTY_ROOT}/co-tracker/cotracker/models/build_cotracker.py" "CoTracker training clone"
+need_file "${COTRACKER_ROOT}/cotracker/models/build_cotracker.py" "CoTracker training clone"
 need_file "${STIRLOADER_ROOT}/STIRLoader/STIRLoader.py" "patched STIRLoader clone"
 need_file "${LITETRACKER_ROOT}/src/lite_tracker.py" "LiteTracker runtime"
 need_file "${STIR_INFERENCE_ROOT}/models/stereo/student_stereo.py" "external stereo wrapper"
-need_file "${INIT_CKPT}" "2025 initialization checkpoint"
+need_file "${INIT_CKPT}" "CoTracker3 initialization checkpoint"
 need_file "${RELEASED_CKPT}" "released epoch-44 checkpoint"
 
 if [ -f "${INIT_CKPT}" ]; then

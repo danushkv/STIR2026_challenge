@@ -38,7 +38,7 @@ metric.
 | `pipeline.tex` | standalone TikZ source for the same method overview |
 | `teacher_comparison.gif` | synchronized 2×3 comparison of all six cached teacher trajectories |
 | `pseudo_labels.gif` | the verifier's fused trajectories over a real clip — the supervision the student is trained on |
-| `student_tracking.gif` | the trained student under the streaming LiteTracker runtime — the same forward pass the submitted container runs — tracking a **64 px grid, 320 points**, which is what the 2026 harness actually hands the container. `GRID=96` for a less busy picture, `--with-tattoos` to also draw the ground-truth circles |
+| `student_tracking.gif` | the trained student under the streaming LiteTracker runtime, tracking a **64 px grid, 320 points**. `GRID=96` gives a less busy picture; `--with-tattoos` also draws the ground-truth circles |
 
 The pair is the point of the method: the left GIF is *all* the annotation STIR
 provides, the right is a dense grid tracked by a model trained on nothing else.

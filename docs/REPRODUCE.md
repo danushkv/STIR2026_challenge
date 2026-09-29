@@ -127,7 +127,7 @@ the trainer wrote into the run directory). Everything not named in it comes from
 
 | | |
 |---|---|
-| init | `track_on/checkpoint/litetracker_finetuned.pth` — the STIR-2025 winning checkpoint, **not** stock `scaled_online.pth` |
+| init | `co-tracker/checkpoints/scaled_online.pth` — Meta's stock CoTracker3-Online checkpoint |
 | labels | `pseudo_labels_with_2024_agg/` |
 | frames | `STIRcombined/` |
 | loss | CoTracker3's `sequence_loss`, `0.05·coord + vis + conf`, `add_huber_loss=False` |
@@ -196,8 +196,9 @@ Expected for `agg_e44` (see [results/ranking.md](results/ranking.md)):
 | 4 | 0.8103 | 4.60 px | 0.7383 | 128.7 ms |
 
 Those 3D figures use `getsegsstereo` for the right-view start points, which is
-annotation the 2026 harness does not provide. What the container ships scores
-**0.7031** — see `submission/CHECKPOINT.txt`.
+annotation the inference interface does not provide. The deployable protocol
+scores **0.7031**; see the `agg_e44_match_fix4|i4` row in
+[results/ranking_reproduction.md](results/ranking_reproduction.md).
 
 ### Comparing a reproduced checkpoint against the original
 

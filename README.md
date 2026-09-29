@@ -4,12 +4,9 @@
 
 ### Multi-Teacher Distillation for Streaming Tissue Tracking
 
-**STIR Challenge 2026 — Team `NCT_TSO`**
-
 Danush Kumar Venkatesh · Peng Liu · Stefanie Speidel<br/>
 *National Center for Tumor Diseases (NCT) Dresden*
 
-[![Report](https://img.shields.io/badge/report-PDF-b31b1b.svg)](stirc2026_nct_tso.pdf)
 [![License](https://img.shields.io/badge/code-MIT-green.svg)](LICENSE)
 [![Weights](https://img.shields.io/badge/weights-CC%20BY--NC%204.0-orange.svg)](NOTICE.md)
 [![Python](https://img.shields.io/badge/python-3.12-blue.svg)](requirements.txt)
@@ -48,24 +45,61 @@ directly visible—the signals used by the verifier when producing supervision.
 The animations are reproducible. See [assets/README.md](assets/README.md) for
 the rendering commands.
 
-## Results
+## Results on the STIR 2025 benchmark
 
-Evaluation used 32 clips and 234 annotated points from the STIR 2025 test
-collection. Every frame was processed with the streaming runtime used by the
-challenge container.
+We evaluate VG-T on all 32 clips in the STIR 2025 test collection: 234 annotated
+2D endpoint tracks and 227 annotated 3D endpoint tracks. The tables place our
+locally reproduced result alongside the published 2025 challenge results using
+the same threshold-averaged metrics.
 
-| Track | Refinement iterations | Metric | Score |
-|---|---:|---|---:|
-| 2D accuracy | 4 | δ_avg over 4/8/16/32/64 px | **0.8103** |
-| 2D latency | 1 | δ_avg / p95 latency on RTX A5000 | **0.8085 / 48.7 ms** |
-| 3D submission protocol | 4 | accuracy over 2/4/8/16/32 mm | **0.7031** |
-| Static-point baseline | — | 3D accuracy | 0.6115 |
+### 3D tracking: highest score against the published 2025 field
 
-See the [full ranking and paired analysis](docs/results/ranking.md), the
-[reproduction ranking](docs/results/ranking_reproduction.md), and the
-[challenge report](stirc2026_nct_tso.pdf). Differences at the top of the 2D
-board are statistical ties; use paired clip-level deltas when comparing
-checkpoints.
+| Method | 2 mm | 4 mm | 8 mm | 16 mm | 32 mm | Average ↑ |
+|---|---:|---:|---:|---:|---:|---:|
+| **VG-T (ours)** | **33.92** | **58.59** | **75.33** | **88.11** | **95.59** | **70.31** |
+| NCT TSO | 33.04 | 51.54 | 75.33 | 87.67 | 94.71 | 68.46 |
+| RAFT Stereo | 17.95 | 40.60 | 60.26 | 82.48 | 92.74 | 58.80 |
+| CONTROL | 19.82 | 40.53 | 59.91 | 79.30 | 93.83 | 58.68 |
+| MFTIQProb | 18.38 | 38.03 | 57.26 | 78.63 | 93.16 | 57.09 |
+
+At **70.31%**, VG-T is 1.85 percentage points above the best published 2025
+entry and would place first in the 3D table. This is the inference-time result:
+right-view queries are recovered from the images and repaired with the geometric
+consistency check. We do not use the higher annotation-assisted score here.
+
+### 2D tracking: competitive with the leading submissions
+
+| Method | 4 px | 8 px | 16 px | 32 px | 64 px | Average ↑ |
+|---|---:|---:|---:|---:|---:|---:|
+| MFT *(baseline)* | 48.29 | 75.64 | 95.30 | 98.72 | 99.57 | 83.50 |
+| CCG DGIST | 47.01 | 74.79 | 94.87 | 98.72 | 99.57 | 82.99 |
+| MFTIQProb | 45.73 | 74.36 | 95.73 | 99.15 | 99.57 | 82.91 |
+| MoriLabNU | 44.87 | 76.50 | 94.87 | 98.29 | 99.15 | 82.74 |
+| UII-VRI-2D | 46.15 | 76.50 | 94.87 | 97.44 | 98.29 | 82.65 |
+| **VG-T (ours)** | **45.73** | **72.65** | **91.45** | **96.58** | **98.72** | **81.03** |
+| NCT TSO | 43.59 | 72.65 | 91.88 | 96.15 | 98.72 | 80.60 |
+
+VG-T improves on the 2025 NCT TSO entry by 0.43 percentage points and would
+place fifth among the published submissions. The leading methods are close, so
+we describe VG-T as competitive rather than claiming a statistically resolved
+2D improvement.
+
+### Streaming speed
+
+VG-T also ranked first for runtime in both the 2D and 3D efficiency evaluations.
+The accuracy/runtime knob is the number of refinement iterations; the fast 2D
+configuration gives essentially the same 2025 endpoint accuracy with one
+iteration.
+
+| Task | Runtime rank | Refinement iterations | Local p95 latency, RTX A5000 |
+|---|---:|---:|---:|
+| 2D | **1st** | 1 | **48.7 ms** |
+| 3D | **1st** | 4 | **~248 ms** |
+
+The speed ranking is reported separately because the published 2025 accuracy
+table does not include latency. See the [full checkpoint analysis](docs/results/ranking.md),
+the [reproduction ranking](docs/results/ranking_reproduction.md), and
+[protocol caveats](docs/CAVEATS.md) for provenance and interpretation.
 
 ## Quick start
 
@@ -73,8 +107,8 @@ The released environment used Python 3.12 and CUDA 12.1. Training took about
 17 hours on one NVIDIA A100 80 GB.
 
 ```bash
-git clone https://github.com/danushkv/STIR2026_challenge
-cd STIR2026_challenge
+git clone <repository-url> vg-t
+cd vg-t
 uv venv --python 3.12 .venv
 source .venv/bin/activate
 uv pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu121
@@ -92,7 +126,7 @@ Before a long run, validate the complete local path with the smoke tests:
 bash scripts/preflight.sh
 bash scripts/smoke_phase2.sh
 bash scripts/smoke_train.sh
-bash scripts/smoke_eval.sh /tmp/stir2026-smoke-runs/<run>/student_last.pth
+bash scripts/smoke_eval.sh <checkpoint-from-smoke_train>
 ```
 
 These checks cover cached-track fusion, exact pseudo-label regeneration, one
@@ -168,11 +202,15 @@ Useful entry points:
 
 ## Important caveats
 
-- The released model was trained on **STIROrig + STIR-2024**, although the
-  challenge report describes the method primarily in terms of STIROrig.
-- The 3D submission score is **0.7031**. The offline reproduction reaches
+- The released model was trained on **STIROrig + STIR-2024**. STIR-2024 and
+  `STIRTest_2025` overlap at the patient level, so the benchmark is not a
+  strictly patient-held-out evaluation.
+- Training starts from Meta's stock **CoTracker3-Online** checkpoint. The saved
+  run configuration retained an older local filename; see
+  [docs/CAVEATS.md](docs/CAVEATS.md) for that provenance correction.
+- The inference-time 3D score is **0.7031**. The offline reproduction reaches
   **0.7383** because it can use annotation-derived right-view start points that
-  are unavailable to the submission runtime.
+  are unavailable at inference time.
 
 See [docs/CAVEATS.md](docs/CAVEATS.md) for the complete scope and evaluation
 notes.
@@ -183,12 +221,11 @@ If this code, checkpoint, or released trajectories are useful, please cite this
 repository and the STIR dataset.
 
 ```bibtex
-@software{venkatesh2026stir,
+@software{venkatesh2026vgt,
   author  = {Venkatesh, Danush Kumar and Liu, Peng and Speidel, Stefanie},
   title   = {Verifier-Guided Multi-Teacher Distillation for Streaming Tissue Tracking},
   year    = {2026},
-  url     = {https://github.com/danushkv/STIR2026_challenge},
-  note    = {STIR Challenge 2026, Team NCT\_TSO}
+  note    = {Code and model release}
 }
 
 @article{schmidt2024stir,

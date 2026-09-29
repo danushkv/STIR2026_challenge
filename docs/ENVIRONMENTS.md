@@ -73,16 +73,21 @@ Under `${THIRDPARTY_ROOT}/track_on/checkpoint/`:
 | `locotrack_base.ckpt` | LocoTrack | upstream release |
 | `track_on_r.pt` | Track-On-R | upstream release |
 | `trackon2_dinov3_checkpoint.pt` | Track-On2 | upstream release |
-| `litetracker_finetuned.pth` | — | the **STIR-2025 winning** checkpoint. Two roles: the `peng_baseline` row on the ablation board, and the initialisation of the shipped run. |
+| `litetracker_finetuned.pth` | — | the **STIR-2025 winning** checkpoint, used for the `peng_baseline` row and the separate ablations identified in [RUNS.md](RUNS.md). |
 
 CoTracker3 as a teacher needs no file — `ensemble/cotracker` fetches it through
 `torch.hub`. Track-On2 / Track-On-R additionally need the DINOv3 backbone
 (`facebook/dinov3-vits16plus-pretrain-lvd1689m`), which is gated on the HF Hub:
 either `huggingface-cli login` with access granted, or set `DINOV3_LOCAL_DIR`.
 
-`${THIRDPARTY_ROOT}/lite-tracker-master/model/scaled_online.pth` is the stock
-CoTracker3-Online checkpoint and the default `checkpoint:` in
-`src/train.yaml`.
+`${THIRDPARTY_ROOT}/co-tracker/checkpoints/scaled_online.pth` is Meta's stock
+CoTracker3-Online checkpoint and the initialization of the released VG-T run.
+It is also the public default `checkpoint:` in `src/train.yaml`.
+
+```bash
+hf download facebook/cotracker3 scaled_online.pth \
+  --local-dir "${THIRDPARTY_ROOT}/co-tracker/checkpoints"
+```
 
 
 ## STIRLoader

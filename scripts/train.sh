@@ -20,11 +20,9 @@
 # model_resolution 384x512, max_train_frames 64, max_points 384, seed 0,
 # supervision `weighted`, skip 5.
 #
-# NOTE ON THE INITIALISATION. `checkpoint=` is NOT the stock CoTracker3
-# `scaled_online.pth` that train.yaml defaults to -- this run started
-# from `litetracker_finetuned.pth`, the STIR-2025 winning checkpoint. Same
-# architecture and same state-dict keys, so it loads identically; it is a
-# different starting point, not a different model.
+# INITIALISATION. The released run starts from Meta's stock CoTracker3-Online
+# `scaled_online.pth`. The original saved config retained a legacy local
+# filename; the public command uses the checkpoint's actual provenance.
 #
 # Output: ${out_dir}/${RUN_NAME}/{config.yaml,student_e2.pth,...,student_e44.pth,
 # student_last.pth}. save_freq=2 is why only even epochs exist.
@@ -52,7 +50,7 @@ CONFIG="${CONFIG:-${REPO_ROOT}/configs/reproduce.yaml}"
 export PSEUDO_LABELS_DIR="${PSEUDO_LABELS_DIR:-${DATA_ROOT}/STIRprocessed/pseudo_labels_with_2024_agg}"
 export STIR_TRAIN_ROOT="${STIR_TRAIN_ROOT:-${DATA_ROOT}/STIRcombined}"
 export COTRACKER_ROOT="${COTRACKER_ROOT:-${THIRDPARTY_ROOT}/co-tracker}"
-export INIT_CKPT="${INIT_CKPT:-${THIRDPARTY_ROOT}/track_on/checkpoint/litetracker_finetuned.pth}"
+export INIT_CKPT="${INIT_CKPT:-${COTRACKER_ROOT}/checkpoints/scaled_online.pth}"
 
 export PYTHONUNBUFFERED=1
 [ -x "${PYTHON_BIN}" ] || {

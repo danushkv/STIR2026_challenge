@@ -28,7 +28,7 @@ Two initialisations appear:
 
 | tag | run directory | script | pseudo-labels | frames root | init | epochs |
 |---|---|---|---|---|---|---|
-| **`agg_e40`, `agg_e44`** | `fast_run_with2024_agg` | `train.py` | `pseudo_labels_with_2024_agg/` | `STIRcombined/` | `litetracker_finetuned` | 45 |
+| **`agg_e40`, `agg_e44`** | `fast_run_with2024_agg` | `train.py` | `pseudo_labels_with_2024_agg/` | `STIRcombined/` | `scaled_online` | 45 |
 | `agg_around_e30`, `agg_around_e44` | `fast_run_with2024_agg_extra_aroundpoints` | `train.py` | `pseudo_labels_with2024_extra_aroundpoints_agg/` | `STIRcombined/` | `litetracker_finetuned` | 45 |
 | `agg_around_thr_e30` | `fast_run_with2024_agg_extra_aroundpoints_thresholdloss` | `train.py` | `pseudo_labels_with2024_extra_aroundpoints_agg/` | `STIRcombined/` | `litetracker_finetuned` | 46 |
 | `around_peng_e42` | `fast_run_with2024_extra_aroundpoints_pengchkpt` | `train.py` | `pseudo_with2024_cotracker3_extra_aroundpoints/` | `STIRcombined/` | `litetracker_finetuned` | 45 |
@@ -65,10 +65,11 @@ python train.py --config train.yaml \
   epochs=45 save_freq=2 wandb.run_name=fast_run_with2024_agg
 ```
 
-Wrapped as `scripts/train.sh`. The original used the relative form
-`checkpoint=../track_on/checkpoint/litetracker_finetuned.pth`, which resolved
-from the old working directory. The public command names that same file through
-the machine-local `INIT_CKPT` variable.
+Wrapped as `scripts/train.sh`. The archived YAML retained the relative path
+`checkpoint=../track_on/checkpoint/litetracker_finetuned.pth`, but that legacy
+filename no longer described the initialization stored there. The released run
+started from stock CoTracker3-Online; the public command therefore points
+`INIT_CKPT` to the official `scaled_online.pth` artifact.
 
 `--key value` and `key=value` are interchangeable —
 `model.normalize_overrides` maps hyphens in *keys* to underscores and

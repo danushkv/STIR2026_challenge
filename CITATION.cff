@@ -15,12 +15,12 @@ authors:
   - given-names: Stefanie
     family-names: Speidel
     affiliation: National Center for Tumor Diseases (NCT) Dresden
-repository-code: 'https://github.com/danushkv/STIR2026_challenge'
 abstract: >-
   A single LiteTracker student distilled from an ensemble of six point trackers.
   The IR-tattoo endpoint annotation in STIR, together with cycle consistency and
   cross-teacher agreement, verifies candidate trajectories and fuses them into
-  weighted pseudo-labels. Team NCT_TSO, STIR Challenge 2026.
+  weighted pseudo-labels for streaming 2D and 3D tissue tracking. The released
+  model is evaluated against the published STIR 2025 benchmark.
 keywords:
   - surgical vision
   - point tracking
