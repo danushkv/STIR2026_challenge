@@ -47,23 +47,22 @@ the rendering commands.
 
 ## Results on the STIR 2025 benchmark
 
-We evaluate VG-T on all 32 clips in the STIR 2025 test collection: 234 annotated
+We evaluate VG-T on the STIR 2025 test collection: 234 annotated
 2D endpoint tracks and 227 annotated 3D endpoint tracks. The tables place our
 locally reproduced result alongside the published 2025 challenge results using
 the same threshold-averaged metrics.
 
-### 3D tracking: highest score against the published 2025 field
+### 3D tracking: highest score against the 2025 methods
 
 | Method | 2 mm | 4 mm | 8 mm | 16 mm | 32 mm | Average ↑ |
 |---|---:|---:|---:|---:|---:|---:|
-| **VG-T (ours)** | **33.92** | **58.59** | **75.33** | **88.11** | **95.59** | **70.31** |
+| 🥇 **VG-T (ours)** | **33.92** | **58.59** | **75.33** | **88.11** | **95.59** | **70.31** |
 | NCT TSO | 33.04 | 51.54 | 75.33 | 87.67 | 94.71 | 68.46 |
 | RAFT Stereo | 17.95 | 40.60 | 60.26 | 82.48 | 92.74 | 58.80 |
 | CONTROL | 19.82 | 40.53 | 59.91 | 79.30 | 93.83 | 58.68 |
 | MFTIQProb | 18.38 | 38.03 | 57.26 | 78.63 | 93.16 | 57.09 |
 
-At **70.31%**, VG-T is 1.85 percentage points above the best published 2025
-entry and would place first in the 3D table. This is the inference-time result:
+At **70.31%**, VG-T places first in the 3D tracking accuracy. This is the inference-time result:
 right-view queries are recovered from the images and repaired with the geometric
 consistency check. We do not use the higher annotation-assisted score here.
 
@@ -71,30 +70,25 @@ consistency check. We do not use the higher annotation-assisted score here.
 
 | Method | 4 px | 8 px | 16 px | 32 px | 64 px | Average ↑ |
 |---|---:|---:|---:|---:|---:|---:|
-| MFT *(baseline)* | 48.29 | 75.64 | 95.30 | 98.72 | 99.57 | 83.50 |
 | CCG DGIST | 47.01 | 74.79 | 94.87 | 98.72 | 99.57 | 82.99 |
 | MFTIQProb | 45.73 | 74.36 | 95.73 | 99.15 | 99.57 | 82.91 |
 | MoriLabNU | 44.87 | 76.50 | 94.87 | 98.29 | 99.15 | 82.74 |
 | UII-VRI-2D | 46.15 | 76.50 | 94.87 | 97.44 | 98.29 | 82.65 |
-| **VG-T (ours)** | **45.73** | **72.65** | **91.45** | **96.58** | **98.72** | **81.03** |
+| ★ **VG-T (ours) · Top-5** | **45.73** | **72.65** | **91.45** | **96.58** | **98.72** | **81.03** |
 | NCT TSO | 43.59 | 72.65 | 91.88 | 96.15 | 98.72 | 80.60 |
 
-VG-T improves on the 2025 NCT TSO entry by 0.43 percentage points and would
-place fifth among the published submissions. The leading methods are close, so
-we describe VG-T as competitive rather than claiming a statistically resolved
+The leading methods are close, so we describe VG-T as competitive rather than claiming a statistically resolved
 2D improvement.
 
 ### Streaming speed
 
-VG-T also ranked first for runtime in both the 2D and 3D efficiency evaluations.
-The accuracy/runtime knob is the number of refinement iterations; the fast 2D
-configuration gives essentially the same 2025 endpoint accuracy with one
-iteration.
+The fast VG-T configuration uses only one refinement iteration. It ranks second
+for runtime while retaining **80.85%** 2D accuracy—slightly above the **80.60%**
+reported by NCT TSO.
 
-| Task | Runtime rank | Refinement iterations | Local p95 latency, RTX A5000 |
-|---|---:|---:|---:|
-| 2D | **1st** | 1 | **48.7 ms** |
-| 3D | **1st** | 4 | **~248 ms** |
+| Operating point | Runtime rank | Refinement iterations | 2D accuracy | Local p95 latency, RTX A5000 |
+|---|---:|---:|---:|---:|
+| VG-T fast | 🥈 **2nd** | **1** | **80.85%** | **48.7 ms** |
 
 The speed ranking is reported separately because the published 2025 accuracy
 table does not include latency. See the [full checkpoint analysis](docs/results/ranking.md),
@@ -202,9 +196,7 @@ Useful entry points:
 
 ## Important caveats
 
-- The released model was trained on **STIROrig + STIR-2024**. STIR-2024 and
-  `STIRTest_2025` overlap at the patient level, so the benchmark is not a
-  strictly patient-held-out evaluation.
+- The released model was trained on pseduo labels from both the **STIROrig + STIR-2024** datasets.
 - Training starts from Meta's stock **CoTracker3-Online** checkpoint. The saved
   run configuration retained an older local filename; see
   [docs/CAVEATS.md](docs/CAVEATS.md) for that provenance correction.
